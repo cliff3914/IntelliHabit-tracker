@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Add New Habit</h1>
+<form method="post">
+    <label>Habit Name:</label>
+    <input type="text" name="name" required>
+    
+    <label>Description:</label>
+    <textarea name="description" rows="3"></textarea>
+    
+    <label>Frequency:</label>
+    <select name="frequency">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+    </select>
+    
+    <label>Reminder Time:</label>
+    <input type="time" name="reminder_time">
+    
+    <label>Target Streak (days):</label>
+    <input type="number" name="target_streak" value="30">
+    
+    <button type="submit" class="btn">Create Habit</button>
+</form>
+{% endblock %}
+
+

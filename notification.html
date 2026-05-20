@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Notification Settings</h2>
+    <form method="POST">
+        <label>
+            <input type="checkbox" name="email_notifications" {% if current_user.email_notifications %}checked{% endif %}>
+            📧 Email Notifications
+        </label>
+        
+        <label>
+            <input type="checkbox" name="sms_notifications" {% if current_user.sms_notifications %}checked{% endif %}>
+            📱 SMS/WhatsApp Notifications
+        </label>
+        
+        <label>Phone Number (for SMS/WhatsApp):</label>
+        <input type="tel" name="phone_number" value="{{ current_user.phone_number or '' }}" placeholder="+1234567890">
+        
+        <button type="submit" class="btn">Save Settings</button>
+    </form>
+    
+    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+        <h3>📱 Mobile Setup Instructions:</h3>
+        <p>For WhatsApp notifications:</p>
+        <ol>
+            <li>Save +14155238886 to your contacts</li>
+            <li>Send "join clue-desert" via WhatsApp to this number</li>
+            <li>Enable SMS notifications in settings above</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

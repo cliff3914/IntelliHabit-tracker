@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Register</h1>
+<form method="post">
+    <label>Username:</label>
+    <input type="text" name="username" required>
+    
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    
+    <label>Password:</label>
+    <input type="password" name="password" required>
+    
+    <button type="submit" class="btn">Register</button>
+</form>
+<p style="margin-top: 20px;">Already have an account? <a href="/login">Login here</a></p>
+{% endblock %}
+

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Complete: {{ habit.name }}</h1>
+<form method="post">
+    <label>Notes (optional):</label>
+    <textarea name="notes" rows="3" placeholder="How did it go?"></textarea>
+    
+    <label>How do you feel?</label>
+    <select name="mood">
+        <option value="5">😊 Great!</option>
+        <option value="4">🙂 Good</option>
+        <option value="3">😐 Okay</option>
+        <option value="2">😕 Not great</option>
+        <option value="1">😫 Difficult</option>
+    </select>
+    
+    <button type="submit" class="btn">Complete Habit</button>
+</form>
+{% endblock %}
+
+

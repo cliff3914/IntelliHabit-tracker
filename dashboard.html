@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome {{ current_user.username }}! 👋</h1>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 2em; font-weight: bold;">{{ stats.total }}</div>
+        <div>Total Habits</div>
+    </div>
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 2em; font-weight: bold;">{{ stats.completed_today }}</div>
+        <div>Completed Today</div>
+    </div>
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 2em; font-weight: bold;">{{ stats.avg_streak }}</div>
+        <div>Avg Streak</div>
+    </div>
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 2em; font-weight: bold;">{{ stats.longest_streak }}</div>
+        <div>Longest Streak</div>
+    </div>
+</div>
+
+<h2>📊 Weekly Progress</h2>
+<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+    <canvas id="progressChart" width="400" height="200" style="max-width: 100%;"></canvas>
+</div>
+
+<h2>🎯 Your Habits</h2>
+<div style="display: grid; gap: 15px;">
+    {% for habit in habits %}
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+        <h3 style="margin: 0 0 10px 0;">{{ habit.name }}</h3>
+        <p style="margin: 5px 0;">{{ habit.description or 'No description' }}</p>
+        <p style="margin: 5px 0;">🔥 Streak: {{ habit.streak }} days</p>
+        <p style="margin: 5px 0;">⏰ Reminder: {{ habit.reminder_time or 'Not set' }}</p>
+        <p style="margin: 5px 0;">🎯 Target: {{ habit.target_streak }} days</p>
+        <a href="{{ url_for('complete_habit', habit_id=habit.id) }}" class="btn"
+            style="margin-top: 10px; display: inline-block;">✅ Complete</a>
+        <a href="{{ url_for('habit_analytics', habit_id=habit.id) }}" class="btn"
+            style="margin-top: 10px; background: #6c757d;">📊 Analytics</a>
+        {% if habit.streak >= habit.target_streak %}
+        <span style="margin-left: 10px; color: #28a745;">🏆 Target Achieved!</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<a href="{{ url_for('add_habit') }}" class="btn" style="margin-top: 20px;">➕ Add New Habit</a>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Get the chart data from the backend
+    const chartData = {{ chart_data| safe }};
+
+    // Create the chart
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.map(function (item) { return item.date; }),
+            datasets: [{
+                label: 'Daily Completions',
+                data: chartData.map(function (item) { return item.completions; }),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
