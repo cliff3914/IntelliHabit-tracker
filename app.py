@@ -163,10 +163,6 @@ def complete_habit(habit_id):
     
     return render_template('complete_habit.html', habit=habit)
 
-# Create tables
-with app.app_context():
-    db.create_all()
-    
 @app.route('/test-email')
 @login_required
 def test_email():
@@ -177,6 +173,10 @@ def test_email():
     mail.send(msg)
     return 'Email sent! Check your inbox.'
 
+# Create tables
+with app.app_context():
+    db.create_all()
+    
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
