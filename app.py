@@ -173,6 +173,51 @@ def test_email():
     mail.send(msg)
     return 'Email sent! Check your inbox.'
 
+@app.route('/send-reminders')
+def send_reminders():
+    """Check all habits and send email reminders"""
+    from flask_mail import Message
+    from datetime import datetime
+    
+    current_time = datetime.now().strftime("%H:%M")
+    print(f"Checking reminders for time: {current_time}")
+    
+    # Find habits with matching reminder time
+    habits = Habit.query.filter_by(reminder_time=current_time).all()
+    
+    count = 0
+    for habit in habits:
+        user = User.query.get(habit.user_id)
+        if user and user.email_notifications:
+            try:
+                msg = Message(
+                    f'Reminder: {habit.name}',
+                    recipients=[user.email],
+                    body=f"Hi {user.username},\n\nIt's time to complete your habit: {habit.name}\n\nKeep up the great work!\n\n- IntelliHabit Tracker"
+                )
+                mail.send(msg)
+                count += 1
+                print(f"Reminder sent to {user.email} for {habit.name}")
+            except Exception as e:
+                print(f"Error sending to {user.email}: {e}")
+    
+    return f"Sent {count} reminder emails at {current_time}"
+
+@app.route('/test-reminder')
+@login_required
+def test_reminder():
+    """Manually send a test reminder to yourself"""
+    from flask_mail import Message
+    
+    msg = Message(
+        'Test Reminder',
+        recipients=[current_user.email],
+        body=f"Hi {current_user.username},\n\nThis is a test reminder. Your habit reminders will work like this!\n\n- IntelliHabit Tracker"
+    )
+    mail.send(msg)
+    flash('Test reminder sent! Check your email.', 'success')
+    return redirect(url_for('dashboard'))
+
 # Create tables
 with app.app_context():
     db.create_all()
