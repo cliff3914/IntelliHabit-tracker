@@ -166,6 +166,7 @@ def complete_habit(habit_id):
 # Create tables
 with app.app_context():
     db.create_all()
+    
 @app.route('/test-email')
 @login_required
 def test_email():
