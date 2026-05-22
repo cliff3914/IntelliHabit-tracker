@@ -166,6 +166,15 @@ def complete_habit(habit_id):
 # Create tables
 with app.app_context():
     db.create_all()
+@app.route('/test-email')
+@login_required
+def test_email():
+    from flask_mail import Message
+    msg = Message('Test Email',
+                  recipients=[current_user.email],
+                  body='This is a test!')
+    mail.send(msg)
+    return 'Email sent! Check your inbox.'
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
