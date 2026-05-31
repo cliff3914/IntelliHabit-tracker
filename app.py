@@ -51,7 +51,7 @@ class Habit(db.Model):
     
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-    class HabitCompletion(db.Model):
+class HabitCompletion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habit.id'), nullable=False)
     completed_date = db.Column(db.DateTime, default=datetime.utcnow)
