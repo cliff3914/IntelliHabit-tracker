@@ -259,7 +259,7 @@ def test_reminder():
 with app.app_context():
     db.create_all()
     
-  @app.route('/motivation')
+@app.route('/motivation')
 @login_required
 def motivation():
     return render_template('motivation.html')
