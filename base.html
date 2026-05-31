@@ -59,32 +59,163 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="nav">
-            <a href="/">Home</a>
-            {% if current_user.is_authenticated %}
-                <a href="/dashboard">Dashboard</a>
-                <a href="/add_habit">Add Habit</a>
-                <a href="/motivation">💪 Motivate</a>
-                <a href="/timer">⏱️ Timer</a>
-                <a href="/report">📊 Report</a>
-                <a href="/reminders">🔔 Reminders</a>
-                <a href="/logout">Logout ({{ current_user.username }})</a>
-            {% else %}
-                <a href="/login">Login</a>
-                <a href="/register">Register</a>
-            {% endif %}
+    <body>
+        <!-- Mobile Bottom Navigation Bar -->
+        <div class="bottom-nav">
+            <a href="/" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="/add_habit" class="nav-item">
+                <span class="nav-icon">➕</span>
+                <span class="nav-label">Add</span>
+            </a>
+            <a href="/timer" class="nav-item">
+                <span class="nav-icon">⏱️</span>
+                <span class="nav-label">Timer</span>
+            </a>
+            <a href="/motivation" class="nav-item">
+                <span class="nav-icon">💪</span>
+                <span class="nav-label">Motivate</span>
+            </a>
+            <a href="/friends" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Friends</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profile</span>
+            </a>
         </div>
-        
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </div>
+    
+        <!-- Main Content Area (with padding for bottom nav) -->
+        <div class="main-content">
+            <div class="container">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Page Content -->
+                <div class="content">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    
+        <style>
+            /* Bottom Navigation Bar Styles */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                display: flex;
+                justify-content: space-around;
+                padding: 10px 5px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                z-index: 1000;
+                border-top: 1px solid #eee;
+            }
+    
+            .nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-decoration: none;
+                color: #888;
+                font-size: 0.75em;
+                transition: all 0.3s;
+                padding: 5px 8px;
+                border-radius: 10px;
+            }
+    
+            .nav-icon {
+                font-size: 1.5em;
+                margin-bottom: 2px;
+            }
+    
+            .nav-label {
+                font-size: 0.7em;
+            }
+    
+            .nav-item:hover {
+                transform: translateY(-2px);
+            }
+    
+            .nav-item.active {
+                color: #667eea;
+            }
+    
+            /* Dark Mode Support */
+            body.dark-mode .bottom-nav {
+                background: #1a1a2e;
+                border-top-color: #2a2a3e;
+            }
+    
+            body.dark-mode .nav-item {
+                color: #aaa;
+            }
+    
+            body.dark-mode .nav-item.active {
+                color: #e94560;
+            }
+    
+            /* Main Content - Add padding so content doesn't hide behind bottom nav */
+            .main-content {
+                padding-bottom: 80px;
+            }
+    
+            /* Hide bottom nav on larger screens (optional) */
+            @media (min-width: 768px) {
+                .bottom-nav {
+                    max-width: 500px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    border-radius: 20px 20px 0 0;
+                }
+            }
+    
+            /* Responsive adjustments */
+            @media (max-width: 600px) {
+                .bottom-nav {
+                    padding: 8px 5px;
+                }
+                .nav-icon {
+                    font-size: 1.3em;
+                }
+                .nav-label {
+                    font-size: 0.65em;
+                }
+            }
+    
+            /* Hide old header navigation - remove or comment out your old nav bar */
+            /* .header .nav { display: none; } */
+        </style>
+    
+        <script>
+            // Highlight active navigation item based on current page
+            document.addEventListener('DOMContentLoaded', function() {
+                const currentPath = window.location.pathname;
+                const navItems = document.querySelectorAll('.nav-item');
+                
+                navItems.forEach(item => {
+                    const href = item.getAttribute('href');
+                    if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
+                        item.classList.add('active');
+                    }
+                });
+            });
+        </script>
+    </body>
 </body>
 </html>

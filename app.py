@@ -311,6 +311,19 @@ def reminders():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     return render_template('reminders.html', habits=habits)
 
+@app.route('/profile')
+@login_required
+def profile():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    total_habits = len(habits)
+    total_streak = sum(h.streak for h in habits)
+    completed_today = sum(1 for h in habits if h.last_completed and h.last_completed.date() == datetime.utcnow().date())
+    
+    return render_template('profile.html', 
+                         total_habits=total_habits, 
+                         total_streak=total_streak, 
+                         completed_today=completed_today)
+    
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
