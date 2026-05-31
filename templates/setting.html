@@ -1,0 +1,51 @@
+<div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 10px;">
+    <h3>🔔 Push Notifications</h3>
+    <button id="notifyBtn" class="btn" onclick="enablePushNotifications()">Enable Notifications</button>
+    <p id="notifyStatus" style="margin-top: 10px;"></p>
+</div>
+
+<script>
+function enablePushNotifications() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                document.getElementById('notifyStatus').innerHTML = '✅ Notifications enabled! You will receive reminders.';
+                document.getElementById('notifyBtn').style.display = 'none';
+                subscribeToPush();
+            } else {
+                document.getElementById('notifyStatus').innerHTML = '❌ Notification permission denied.';
+            }
+        });
+    } else {
+        document.getElementById('notifyStatus').innerHTML = '❌ Your browser does not support notifications.';
+    }
+}
+
+function subscribeToPush() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.pushManager.subscribe({
+                userVisibleOnly: true
+            }).then(subscription => {
+                console.log('Push subscription successful:', subscription);
+                // Send subscription to server
+                fetch('/save_subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                });
+            }).catch(error => {
+                console.log('Push subscription failed:', error);
+            });
+        });
+    }
+}
+
+// Check current notification status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        document.getElementById('notifyStatus').innerHTML = '✅ Notifications are enabled';
+        document.getElementById('notifyBtn').style.display = 'none';
+    }
+});
+</script>

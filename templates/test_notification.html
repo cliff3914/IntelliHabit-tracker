@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Test Push Notification</h1>
+<button id="testBtn" class="btn" onclick="sendTest()">Send Test Notification</button>
+
+<script>
+function sendTest() {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('IntelliHabit Test', {
+            body: 'This is a test notification! Your reminders will work like this.',
+            icon: '/static/icon-192.png'
+        });
+    } else {
+        alert('Please enable notifications first in Settings');
+    }
+}
+</script>
+{% endblock %}

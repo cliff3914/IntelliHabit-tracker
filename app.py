@@ -58,6 +58,12 @@ class HabitCompletion(db.Model):
     notes = db.Column(db.String(200))
     mood = db.Column(db.Integer)
 
+class PushSubscription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    endpoint = db.Column(db.String(500), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -414,6 +420,32 @@ def get_day_habits():
             })
     
     return jsonify(result)
+
+@app.route('/save_subscription', methods=['POST'])
+@login_required
+def save_subscription():
+    data = request.get_json()
+    
+    # Check if already exists
+    existing = PushSubscription.query.filter_by(
+        user_id=current_user.id,
+        endpoint=data.get('endpoint')
+    ).first()
+    
+    if not existing:
+        subscription = PushSubscription(
+            user_id=current_user.id,
+            endpoint=data.get('endpoint')
+        )
+        db.session.add(subscription)
+        db.session.commit()
+    
+    return {'status': 'success'}
+
+@app.route('/test_notification')
+@login_required
+def test_notification():
+    return render_template('test_notification.html')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
