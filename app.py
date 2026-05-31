@@ -346,7 +346,7 @@ def widgets():
                          completed_today=completed_today,
                          now=datetime.utcnow())
     
-    @app.route('/calendar')
+@app.route('/calendar')
 @login_required
 def calendar():
     return render_template('calendar.html', now=datetime.utcnow())
