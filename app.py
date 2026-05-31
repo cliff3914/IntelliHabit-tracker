@@ -50,6 +50,13 @@ class Habit(db.Model):
     reminder_message = db.Column(db.String(500), default="Time to complete your habit!")
     
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    class HabitCompletion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    habit_id = db.Column(db.Integer, db.ForeignKey('habit.id'), nullable=False)
+    completed_date = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.String(200))
+    mood = db.Column(db.Integer)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -339,6 +346,76 @@ def widgets():
                          completed_today=completed_today,
                          now=datetime.utcnow())
     
+    @app.route('/calendar')
+@login_required
+def calendar():
+    return render_template('calendar.html', now=datetime.utcnow())
+
+@app.route('/get_calendar_data')
+@login_required
+def get_calendar_data():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    completion_data = {}
+    
+    # Get last 90 days of completions
+    end_date = datetime.utcnow().date()
+    start_date = end_date - timedelta(days=90)
+    
+    for habit in habits:
+        completions = HabitCompletion.query.filter(
+            HabitCompletion.habit_id == habit.id,
+            HabitCompletion.completed_date >= start_date
+        ).all()
+        
+        for comp in completions:
+            date_str = comp.completed_date.strftime('%Y-%m-%d')
+            if date_str not in completion_data:
+                completion_data[date_str] = {'completed': 0, 'total': 0}
+            completion_data[date_str]['completed'] += 1
+    
+    # Calculate status for each day
+    result = {}
+    for date_str, data in completion_data.items():
+        total_habits = len(habits)
+        completed = data['completed']
+        if completed == total_habits:
+            result[date_str] = 'completed'
+        elif completed > 0:
+            result[date_str] = 'partial'
+        else:
+            result[date_str] = 'missed'
+    
+    return jsonify(result)
+
+@app.route('/get_day_habits')
+@login_required
+def get_day_habits():
+    date_str = request.args.get('date')
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    result = []
+    
+    for habit in habits:
+        completion = HabitCompletion.query.filter(
+            HabitCompletion.habit_id == habit.id,
+            HabitCompletion.completed_date >= target_date,
+            HabitCompletion.completed_date < target_date + timedelta(days=1)
+        ).first()
+        
+        if completion:
+            result.append({
+                'name': habit.name,
+                'status': 'completed'
+            })
+        else:
+            result.append({
+                'name': habit.name,
+                'status': 'missed'
+            })
+    
+    return jsonify(result)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
