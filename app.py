@@ -116,7 +116,6 @@ def logout():
 @login_required
 def dashboard():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
-    
     total_habits = len(habits)
     completed_today = sum(1 for h in habits if h.last_completed and h.last_completed.date() == datetime.utcnow().date())
     

@@ -1,205 +1,424 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Dashboard Header -->
 <div class="dashboard-header">
-    <h1>Build Habits</h1>
+    <h1>🏆 Build Habits</h1>
     <p>Plan your goals</p>
+    <div class="time-display">{{ now.strftime('%H:%M') }}</div>
     
-    <div class="time-display">
-        {{ now.strftime('%H:%M') }}
-    </div>
-    
-    <div class="filter-tabs">
-        <button class="filter-btn active" onclick="filterHabits('all')">All</button>
-        <button class="filter-btn" onclick="filterHabits('today')">Today</button>
+    <!-- Quick Stats -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="stat-number">{{ stats.total }}</div>
+            <div class="stat-label">Habits</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">{{ stats.completed_today }}</div>
+            <div class="stat-label">Today</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">{{ stats.avg_streak }}</div>
+            <div class="stat-label">Avg Streak</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">{{ stats.longest_streak }}</div>
+            <div class="stat-label">Best</div>
+        </div>
     </div>
 </div>
 
-<div class="habits-grid">
-    {% for habit in habits %}
-    <div class="habit-card">
-        <div class="habit-icon">
-            {% if 'water' in habit.name.lower() %}💧
-            {% elif 'yoga' in habit.name.lower() %}🧘
-            {% elif 'run' in habit.name.lower() %}🏃
-            {% elif 'walk' in habit.name.lower() %}🚶
-            {% elif 'meditation' in habit.name.lower() %}🧠
-            {% else %}⭐
-            {% endif %}
-        </div>
-        
-        <div class="habit-info">
-            <h3>{{ habit.name }}</h3>
-            
-            {% if habit.target_value and habit.target_value > 0 %}
-                <div class="progress-text">
-                    {{ habit.current_value|round(0) }}/{{ habit.target_value|round(0) }} {{ habit.unit }}
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ (habit.current_value / habit.target_value * 100)|round }}%;"></div>
-                </div>
-            {% else %}
-                <div class="habit-badge">Daily Habit</div>
-            {% endif %}
-            
-            <div class="streak-info">
-                🔥 {{ habit.streak }} Days
+<!-- Tabs for different views -->
+<div class="dashboard-tabs">
+    <button class="tab-btn active" onclick="showTab('habits')">📋 My Habits</button>
+    <button class="tab-btn" onclick="showTab('calendar')">📅 Calendar</button>
+    <button class="tab-btn" onclick="showTab('widgets')">📱 Widgets</button>
+    <button class="tab-btn" onclick="showTab('progress')">📊 Progress</button>
+</div>
+
+<!-- Tab 1: Habits List -->
+<div id="habitsTab" class="tab-content active">
+    <div class="habits-grid">
+        {% for habit in habits %}
+        <div class="habit-card">
+            <div class="habit-icon">
+                {% if 'water' in habit.name.lower() %}💧
+                {% elif 'yoga' in habit.name.lower() %}🧘
+                {% elif 'run' in habit.name.lower() %}🏃
+                {% elif 'walk' in habit.name.lower() %}🚶
+                {% elif 'meditation' in habit.name.lower() %}🧠
+                {% else %}⭐
+                {% endif %}
+            </div>
+            <div class="habit-info">
+                <h3>{{ habit.name }}</h3>
+                {% if habit.target_value and habit.target_value > 0 %}
+                    <div class="progress-text">{{ habit.current_value|round(0) }}/{{ habit.target_value|round(0) }} {{ habit.unit }}</div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: {{ (habit.current_value / habit.target_value * 100)|round }}%;"></div></div>
+                {% else %}
+                    <div class="habit-badge">Daily Habit</div>
+                {% endif %}
+                <div class="streak-info">🔥 {{ habit.streak }} Days</div>
+            </div>
+            <div class="habit-actions">
+                {% set today_completed = habit.last_completed and habit.last_completed.date() == now.date() %}
+                {% if today_completed %}
+                    <span class="completed-badge">✅ Completed</span>
+                {% else %}
+                    <a href="{{ url_for('complete_habit', habit_id=habit.id) }}" class="complete-btn">Complete</a>
+                {% endif %}
             </div>
         </div>
-        
-        <div class="habit-actions">
-            {% set today_completed = habit.last_completed and habit.last_completed.date() == now.date() %}
-            {% if today_completed %}
-                <span class="completed-badge">✅ Completed</span>
-            {% else %}
-                <a href="{{ url_for('complete_habit', habit_id=habit.id) }}" class="complete-btn">Complete</a>
-            {% endif %}
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+    <a href="{{ url_for('add_habit') }}" class="add-habit-btn">+ Add New Habit</a>
 </div>
 
-<a href="{{ url_for('add_habit') }}" class="float-add-btn">+</a>
+<!-- Tab 2: Calendar View -->
+<div id="calendarTab" class="tab-content">
+    <div class="calendar-widget">
+        <div class="calendar-nav">
+            <button class="nav-btn" onclick="changeMonth(-1)">←</button>
+            <h3 id="monthYear"></h3>
+            <button class="nav-btn" onclick="changeMonth(1)">→</button>
+        </div>
+        <div class="calendar-legend">
+            <span><span class="legend-dot completed"></span> Done</span>
+            <span><span class="legend-dot partial"></span> Partial</span>
+            <span><span class="legend-dot missed"></span> Missed</span>
+            <span><span class="legend-dot today"></span> Today</span>
+        </div>
+        <div class="calendar-grid">
+            <div class="calendar-weekdays">
+                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+            <div class="calendar-days" id="calendarDays"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 3: Widgets View -->
+<div id="widgetsTab" class="tab-content">
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Search habits..." onkeyup="filterWidgets()">
+    </div>
+    <div class="widgets-grid" id="widgetsGrid">
+        {% for habit in habits %}
+        <div class="widget-card" data-name="{{ habit.name.lower() }}">
+            <div class="widget-header">
+                <span>{{ habit.name }}</span>
+                <span>{{ habit.current_value|round(0) }}/{{ habit.target_value|round(0) }}</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: {{ (habit.current_value / habit.target_value * 100) if habit.target_value > 0 else 0 }}%;"></div></div>
+            <div class="widget-footer">
+                <span>🔥 {{ habit.streak }} days</span>
+                {% if habit.last_completed and habit.last_completed.date() == now.date() %}
+                    <span>✅ Done</span>
+                {% else %}
+                    <a href="{{ url_for('complete_habit', habit_id=habit.id) }}">Complete</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Tab 4: Progress View -->
+<div id="progressTab" class="tab-content">
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-label">Total Habits</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.completed_today }}</div>
+            <div class="stat-label">Completed Today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.avg_streak }}</div>
+            <div class="stat-label">Average Streak</div>
+        </div>
+    </div>
+    <canvas id="progressChart" width="400" height="200"></canvas>
+</div>
 
 <style>
 .dashboard-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
-.dashboard-header h1 {
-    font-size: 2em;
-    margin-bottom: 5px;
-}
-.time-display {
-    font-size: 2.5em;
-    font-weight: bold;
-    margin: 10px 0;
-}
-.filter-tabs {
-    display: flex;
-    justify-content: center;
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin: 20px 0;
+    margin: 15px 0;
 }
-.filter-btn {
-    padding: 8px 20px;
+.stat-box {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    text-align: center;
+}
+.stat-number {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #667eea;
+}
+.stat-label {
+    font-size: 0.7em;
+    color: #666;
+}
+.dashboard-tabs {
+    display: flex;
+    gap: 5px;
+    margin: 15px 0;
+    background: white;
+    border-radius: 30px;
+    padding: 5px;
+}
+.tab-btn {
+    flex: 1;
+    padding: 8px;
     border: none;
-    background: #e0e0e0;
-    border-radius: 20px;
+    background: transparent;
+    border-radius: 25px;
     cursor: pointer;
 }
-.filter-btn.active {
+.tab-btn.active {
     background: #667eea;
     color: white;
 }
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
 .habits-grid {
-    display: grid;
-    gap: 15px;
-    margin-bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 .habit-card {
     background: white;
     border-radius: 15px;
-    padding: 15px;
+    padding: 12px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    gap: 12px;
 }
 .habit-icon {
-    font-size: 2.5em;
-    min-width: 60px;
-    text-align: center;
+    font-size: 2em;
 }
 .habit-info {
     flex: 1;
 }
 .habit-info h3 {
     margin: 0 0 5px 0;
-}
-.progress-text {
-    font-size: 0.8em;
-    color: #666;
+    font-size: 1em;
 }
 .progress-bar {
-    width: 100%;
     height: 6px;
     background: #e0e0e0;
     border-radius: 3px;
-    margin: 8px 0;
+    margin: 5px 0;
 }
 .progress-fill {
     height: 100%;
     background: #4CAF50;
     border-radius: 3px;
 }
-.streak-info {
-    font-size: 0.8em;
-    color: #ff9800;
-}
-.habit-badge {
-    font-size: 0.7em;
-    background: #e8e8e8;
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-}
 .complete-btn {
     background: #667eea;
     color: white;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 20px;
     text-decoration: none;
+    font-size: 0.8em;
 }
 .completed-badge {
     color: #4CAF50;
     font-weight: bold;
+    font-size: 0.8em;
 }
-.float-add-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+.add-habit-btn {
+    display: block;
+    text-align: center;
     background: #667eea;
     color: white;
-    width: 50px;
-    height: 50px;
+    padding: 12px;
+    border-radius: 30px;
+    text-decoration: none;
+}
+.calendar-widget {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+}
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.nav-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.legend-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
+    margin-right: 5px;
+}
+.legend-dot.completed { background: #4CAF50; }
+.legend-dot.partial { background: #ff9800; }
+.legend-dot.missed { background: #ff4444; }
+.legend-dot.today { background: #667eea; }
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+.calendar-day {
+    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none;
-    font-size: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f5f5f5;
 }
-body.dark-mode .habit-card {
+.calendar-day.completed { background: #4CAF50; color: white; }
+.calendar-day.partial { background: #ff9800; color: white; }
+.calendar-day.missed { background: #ff4444; color: white; }
+.calendar-day.today { border: 2px solid #667eea; }
+.widget-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.widget-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.8em;
+}
+.search-bar {
+    margin-bottom: 15px;
+}
+.search-bar input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+}
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+body.dark-mode .stat-box,
+body.dark-mode .habit-card,
+body.dark-mode .calendar-widget,
+body.dark-mode .widget-card,
+body.dark-mode .stat-card {
     background: #1a1a2e;
-}
-@media (max-width: 768px) {
-    .habit-card {
-        flex-wrap: wrap;
-    }
-    .habit-actions {
-        width: 100%;
-        text-align: right;
-    }
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-function filterHabits(filter) {
-    const cards = document.querySelectorAll('.habit-card');
-    const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
+let currentCalendarDate = new Date();
+let completionData = {};
+
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabName + 'Tab').classList.add('active');
     event.target.classList.add('active');
     
-    if (filter === 'all') {
-        cards.forEach(card => card.style.display = 'flex');
-    } else if (filter === 'today') {
-        cards.forEach(card => {
-            const completedBadge = card.querySelector('.completed-badge');
-            card.style.display = completedBadge ? 'flex' : 'none';
-        });
+    if (tabName === 'progress') {
+        drawChart();
     }
 }
+
+function filterWidgets() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.widget-card').forEach(card => {
+        const name = card.dataset.name;
+        card.style.display = name.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function renderCalendar() {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startingDay = firstDay.getDay();
+    const totalDays = lastDay.getDate();
+    const today = new Date();
+    
+    document.getElementById('monthYear').textContent = currentCalendarDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    let html = '';
+    for (let i = 0; i < startingDay; i++) html += '<div></div>';
+    
+    for (let day = 1; day <= totalDays; day++) {
+        const isToday = (year === today.getFullYear() && month === today.getMonth() && day === today.getDate());
+        html += `<div class="calendar-day ${isToday ? 'today' : ''}">${day}</div>`;
+    }
+    document.getElementById('calendarDays').innerHTML = html;
+}
+
+function changeMonth(delta) {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function drawChart() {
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: { labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], datasets: [{ label: 'Completions', data: [65, 70, 80, 75], borderColor: '#667eea' }] }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar();
+});
 </script>
 {% endblock %}
