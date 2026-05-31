@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="motivation-container">
+    <h1>✨ Self-Motivation</h1>
+    <p class="subtitle">Affirmations & quotes</p>
+    
+    <div class="quote-card">
+        <div class="time-display" id="currentTime"></div>
+        <div class="quote-text" id="quoteText">
+            I will relentlessly pursue my dreams because I know that effort will eventually be rewarded.
+        </div>
+        <div class="quote-controls">
+            <button class="quote-btn" onclick="previousQuote()">◀ Previous</button>
+            <button class="quote-btn" onclick="newQuote()">🎲 Random</button>
+            <button class="quote-btn" onclick="nextQuote()">Next ▶</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.motivation-container {
+    text-align: center;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.quote-card {
+    background: white;
+    border-radius: 20px;
+    padding: 50px 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.quote-card:hover {
+    transform: translateY(-5px);
+}
+
+.time-display {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 30px;
+}
+
+.quote-text {
+    font-size: 1.8em;
+    line-height: 1.4;
+    margin: 40px 0;
+    font-style: italic;
+    color: #333;
+    min-height: 150px;
+}
+
+.quote-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.quote-btn {
+    padding: 10px 20px;
+    border: none;
+    background: #667eea;
+    color: white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s;
+}
+
+.quote-btn:hover {
+    background: #5a67d8;
+    transform: scale(1.05);
+}
+
+body.dark-mode .quote-card {
+    background: #1a1a2e;
+}
+
+body.dark-mode .quote-text {
+    color: #eee;
+}
+
+body.dark-mode .subtitle {
+    color: #aaa;
+}
+
+@media (max-width: 768px) {
+    .quote-text {
+        font-size: 1.3em;
+    }
+    .time-display {
+        font-size: 1.8em;
+    }
+    .quote-btn {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+}
+</style>
+
+<script>
+// Array of motivational quotes
+const quotes = [
+    "I will relentlessly pursue my dreams because I know that effort will eventually be rewarded.",
+    "The only limit to your impact is your imagination and commitment.",
+    "Small daily improvements are the key to staggering long-term results.",
+    "You don't have to be great to start, but you have to start to be great.",
+    "Believe you can and you're halfway there.",
+    "Your future self is counting on you. Don't let them down.",
+    "The secret of getting ahead is getting started.",
+    "It's not about having time. It's about making time.",
+    "Success is the sum of small efforts, repeated day in and day out.",
+    "Don't watch the clock; do what it does. Keep going.",
+    "The only bad workout is the one that didn't happen.",
+    "You are stronger than you think.",
+    "Every day is a new beginning. Take a deep breath and start again.",
+    "Discipline is choosing between what you want now and what you want most.",
+    "The habit of persistence is the habit of victory.",
+    "Start where you are. Use what you have. Do what you can.",
+    "Progress, not perfection.",
+    "One day or day one. You decide.",
+    "Make today so awesome that yesterday gets jealous.",
+    "You didn't come this far to only come this far."
+];
+
+let currentQuoteIndex = 0;
+
+// Function to update time display
+function updateTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('currentTime').innerHTML = hours + ':' + minutes + ' <span style="font-size:0.5em;">📱</span>';
+}
+
+// Function to display a quote by index
+function displayQuote(index) {
+    currentQuoteIndex = index;
+    document.getElementById('quoteText').textContent = quotes[currentQuoteIndex];
+}
+
+// Random quote
+function newQuote() {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    displayQuote(randomIndex);
+}
+
+// Next quote
+function nextQuote() {
+    let nextIndex = currentQuoteIndex + 1;
+    if (nextIndex >= quotes.length) {
+        nextIndex = 0;
+    }
+    displayQuote(nextIndex);
+}
+
+// Previous quote
+function previousQuote() {
+    let prevIndex = currentQuoteIndex - 1;
+    if (prevIndex < 0) {
+        prevIndex = quotes.length - 1;
+    }
+    displayQuote(prevIndex);
+}
+
+// Load random quote on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateTime();
+    setInterval(updateTime, 60000);
+    newQuote(); // Show random quote when page loads
+});
+</script>
+{% endblock %}
