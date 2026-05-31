@@ -324,6 +324,21 @@ def profile():
                          total_streak=total_streak, 
                          completed_today=completed_today)
     
+@app.route('/widgets')
+@login_required
+def widgets():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    total_habits = len(habits)
+    total_streak = sum(h.streak for h in habits)
+    completed_today = sum(1 for h in habits if h.last_completed and h.last_completed.date() == datetime.utcnow().date())
+    
+    return render_template('widgets.html', 
+                         habits=habits, 
+                         total_habits=total_habits, 
+                         total_streak=total_streak, 
+                         completed_today=completed_today,
+                         now=datetime.utcnow())
+    
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
