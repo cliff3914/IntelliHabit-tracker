@@ -269,6 +269,12 @@ def motivation():
 def timer():
     return render_template('timer.html')
 
+@app.route('/report')
+@login_required
+def report():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    return render_template('report.html', habits=habits)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

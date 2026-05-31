@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <h1>📊 Habit Report</h1>
+    <p>Review your progress</p>
+    
+    <div class="period-selector">
+        <button class="period-btn active" onclick="changePeriod('weekly')">Weekly</button>
+        <button class="period-btn" onclick="changePeriod('monthly')">Monthly</button>
+        <button class="period-btn" onclick="changePeriod('yearly')">Yearly</button>
+    </div>
+    
+    <div class="week-selector" id="weekSelector">
+        <button class="nav-btn" onclick="changeWeek(-1)">←</button>
+        <span id="weekRange" class="week-range">Loading...</span>
+        <button class="nav-btn" onclick="changeWeek(1)">→</button>
+    </div>
+    
+    <div class="month-selector" id="monthSelector" style="display:none;">
+        <button class="nav-btn" onclick="changeMonth(-1)">←</button>
+        <span id="monthName" class="week-range">Loading...</span>
+        <button class="nav-btn" onclick="changeMonth(1)">→</button>
+    </div>
+    
+    <div class="heatmap-container">
+        <div class="heatmap-header">
+            <span class="habit-name-col">Habit</span>
+            <div class="days-row">
+                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+        </div>
+        <div id="heatmapBody">
+            <!-- Heatmap rows will be inserted here by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-value" id="bestDayPercent">0%</div>
+            <div class="stat-label">Best Day</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="bestStreakDays">0</div>
+            <div class="stat-label">Best Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalDone">0</div>
+            <div class="stat-label">Total Done</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalMissed">0</div>
+            <div class="stat-label">Total Missed</div>
+        </div>
+    </div>
+</div>
+
+<style>
+.report-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.report-container h1 {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.report-container > p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.period-selector {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.period-btn {
+    padding: 10px 25px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.period-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.week-selector, .month-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.nav-btn {
+    padding: 8px 20px;
+    border: none;
+    background: #667eea;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.week-range, .month-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    min-width: 200px;
+    text-align: center;
+}
+
+.heatmap-container {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    overflow-x: auto;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.heatmap-header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.habit-name-col {
+    width: 150px;
+    min-width: 150px;
+}
+
+.days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 50px);
+    gap: 5px;
+    text-align: center;
+}
+
+.heatmap-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.habit-name {
+    width: 150px;
+    min-width: 150px;
+    font-weight: 500;
+}
+
+.day-cells {
+    display: grid;
+    grid-template-columns: repeat(7, 50px);
+    gap: 5px;
+}
+
+.day-cell {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.2em;
+    transition: transform 0.2s;
+}
+
+.day-cell:hover {
+    transform: scale(1.1);
+}
+
+.day-cell.completed {
+    background: #4CAF50;
+    color: white;
+}
+
+.day-cell.missed {
+    background: #ff4444;
+    color: white;
+}
+
+.day-cell.partial {
+    background: #ff9800;
+    color: white;
+}
+
+.day-cell.empty {
+    background: #f0f0f0;
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.stat-label {
+    color: #666;
+    margin-top: 5px;
+}
+
+body.dark-mode .heatmap-container {
+    background: #1a1a2e;
+}
+
+body.dark-mode .stat-card {
+    background: #1a1a2e;
+}
+
+body.dark-mode .day-cell.empty {
+    background: #2a2a3e;
+}
+
+body.dark-mode .report-container > p {
+    color: #aaa;
+}
+
+@media (max-width: 768px) {
+    .habit-name-col, .habit-name {
+        width: 100px;
+        min-width: 100px;
+        font-size: 0.8em;
+    }
+    .days-row, .day-cells {
+        grid-template-columns: repeat(7, 35px);
+        gap: 3px;
+    }
+    .day-cell {
+        width: 35px;
+        height: 35px;
+        font-size: 0.8em;
+    }
+    .stat-value {
+        font-size: 1.8em;
+    }
+}
+</style>
+
+<script>
+let currentView = 'weekly';
+let currentWeekOffset = 0;
+let currentMonthOffset = 0;
+let habitsData = [];
+
+// Get habits from backend
+const habits = [
+    {% for habit in habits %}
+    { id: {{ habit.id }}, name: "{{ habit.name }}", completions: [] },
+    {% endfor %}
+];
+
+// Function to get completion data (simulated - you can replace with actual API call)
+function getCompletions(habitId) {
+    // This is where you would fetch actual completion data from your backend
+    // For now, generating sample data
+    const completions = {};
+    for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        // Random completion status for demo
+        completions[dateStr] = Math.random() > 0.3;
+    }
+    return completions;
+}
+
+function getWeekDates(offset) {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - currentDay + (offset * 7));
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    
+    return { startDate, endDate };
+}
+
+function formatDate(date) {
+    return `${date.getMonth()+1}/${date.getDate()}`;
+}
+
+function getWeekRange(offset) {
+    const { startDate, endDate } = getWeekDates(offset);
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+}
+
+function getMonthName(offset) {
+    const now = new Date();
+    const targetMonth = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    return targetMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+}
+
+function getDaysInMonth(offset) {
+    const now = new Date();
+    const targetMonth = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const firstDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
+    const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0);
+    return { firstDay, lastDay, daysInMonth: lastDay.getDate() };
+}
+
+function getCompletionStatus(habit, date) {
+    // Check if habit was completed on this date
+    if (habit.last_completed) {
+        const completedDate = new Date(habit.last_completed);
+        if (completedDate.toDateString() === date.toDateString()) {
+            return 'completed';
+        }
+    }
+    return 'missed';
+}
+
+function getStatusEmoji(status) {
+    switch(status) {
+        case 'completed': return '✅';
+        case 'missed': return '❌';
+        case 'partial': return '🟡';
+        default: return '⚪';
+    }
+}
+
+function renderWeeklyHeatmap(offset) {
+    const { startDate, endDate } = getWeekDates(offset);
+    const heatmapBody = document.getElementById('heatmapBody');
+    heatmapBody.innerHTML = '';
+    
+    let totalCompleted = 0;
+    let totalHabits = habits.length * 7;
+    
+    habits.forEach(habit => {
+        const row = document.createElement('div');
+        row.className = 'heatmap-row';
+        
+        const habitName = document.createElement('div');
+        habitName.className = 'habit-name';
+        habitName.textContent = habit.name;
+        
+        const cells = document.createElement('div');
+        cells.className = 'day-cells';
+        
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            const status = getCompletionStatus(habit, currentDate);
+            
+            const cell = document.createElement('div');
+            cell.className = `day-cell ${status}`;
+            cell.textContent = getStatusEmoji(status);
+            cell.title = `${habit.name} on ${currentDate.toDateString()}: ${status}`;
+            cells.appendChild(cell);
+            
+            if (status === 'completed') totalCompleted++;
+        }
+        
+        row.appendChild(habitName);
+        row.appendChild(cells);
+        heatmapBody.appendChild(row);
+    });
+    
+    const completionRate = totalHabits > 0 ? (totalCompleted / totalHabits * 100).toFixed(0) : 0;
+    document.getElementById('bestDayPercent').textContent = `${completionRate}%`;
+    document.getElementById('weekRange').textContent = getWeekRange(offset);
+}
+
+function renderMonthlyHeatmap(offset) {
+    const { firstDay, lastDay, daysInMonth } = getDaysInMonth(offset);
+    const heatmapBody = document.getElementById('heatmapBody');
+    heatmapBody.innerHTML = '';
+    
+    const firstDayOfWeek = firstDay.getDay();
+    const totalCells = Math.ceil((daysInMonth + firstDayOfWeek) / 7) * 7;
+    
+    habits.forEach(habit => {
+        const row = document.createElement('div');
+        row.className = 'heatmap-row';
+        
+        const habitName = document.createElement('div');
+        habitName.className = 'habit-name';
+        habitName.textContent = habit.name;
+        
+        const cells = document.createElement('div');
+        cells.className = 'day-cells';
+        
+        for (let i = 0; i < totalCells; i++) {
+            const dayNum = i - firstDayOfWeek + 1;
+            let status = 'empty';
+            let displayText = '';
+            
+            if (dayNum >= 1 && dayNum <= daysInMonth) {
+                const currentDate = new Date(firstDay.getFullYear(), firstDay.getMonth(), dayNum);
+                const completionStatus = getCompletionStatus(habit, currentDate);
+                status = completionStatus;
+                displayText = dayNum;
+            }
+            
+            const cell = document.createElement('div');
+            cell.className = `day-cell ${status}`;
+            cell.textContent = displayText || '';
+            cells.appendChild(cell);
+        }
+        
+        row.appendChild(habitName);
+        row.appendChild(cells);
+        heatmapBody.appendChild(row);
+    });
+    
+    document.getElementById('monthName').textContent = getMonthName(offset);
+}
+
+function changePeriod(period) {
+    currentView = period;
+    currentWeekOffset = 0;
+    currentMonthOffset = 0;
+    
+    // Update button styles
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase() === period) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Show/hide selectors
+    if (period === 'weekly') {
+        document.getElementById('weekSelector').style.display = 'flex';
+        document.getElementById('monthSelector').style.display = 'none';
+        renderWeeklyHeatmap(0);
+    } else if (period === 'monthly') {
+        document.getElementById('weekSelector').style.display = 'none';
+        document.getElementById('monthSelector').style.display = 'flex';
+        renderMonthlyHeatmap(0);
+    }
+}
+
+function changeWeek(direction) {
+    currentWeekOffset += direction;
+    renderWeeklyHeatmap(currentWeekOffset);
+}
+
+function changeMonth(direction) {
+    currentMonthOffset += direction;
+    renderMonthlyHeatmap(currentMonthOffset);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    renderWeeklyHeatmap(0);
+    
+    // Calculate stats
+    let totalDone = 0;
+    let totalMissed = 0;
+    let currentStreak = 0;
+    let bestStreak = 0;
+    
+    // Simulated stats calculation
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        let completedToday = 0;
+        habits.forEach(habit => {
+            const status = getCompletionStatus(habit, date);
+            if (status === 'completed') {
+                completedToday++;
+                totalDone++;
+            } else {
+                totalMissed++;
+            }
+        });
+        
+        if (completedToday === habits.length) {
+            currentStreak++;
+            if (currentStreak > bestStreak) bestStreak = currentStreak;
+        } else {
+            currentStreak = 0;
+        }
+    }
+    
+    document.getElementById('bestStreakDays').textContent = bestStreak;
+    document.getElementById('totalDone').textContent = totalDone;
+    document.getElementById('totalMissed').textContent = totalMissed;
+});
+</script>
+{% endblock %}
