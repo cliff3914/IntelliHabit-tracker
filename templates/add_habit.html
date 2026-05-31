@@ -1,13 +1,34 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Add New Habit</h1>
+<h1>➕ Add New Habit</h1>
+
 <form method="post">
     <label>Habit Name:</label>
-    <input type="text" name="name" required>
+    <input type="text" name="name" required placeholder="e.g., Drink Water, Yoga, Run">
     
-    <label>Description:</label>
-    <textarea name="description" rows="3"></textarea>
+    <label>Description (optional):</label>
+    <textarea name="description" rows="2" placeholder="Describe your habit..."></textarea>
+    
+    <label>Habit Type:</label>
+    <select name="habit_type" id="habitType" onchange="toggleProgressFields()">
+        <option value="boolean">Simple (Complete / Not Complete)</option>
+        <option value="progress">Progress Tracking (with daily target)</option>
+    </select>
+    
+    <div id="progressFields" style="display: none;">
+        <label>Daily Target Value:</label>
+        <input type="number" name="target_value" step="any" placeholder="e.g., 3000, 30, 10">
+        
+        <label>Unit:</label>
+        <select name="unit">
+            <option value="times">times</option>
+            <option value="ml">ml</option>
+            <option value="min">minutes</option>
+            <option value="km">km</option>
+            <option value="steps">steps</option>
+        </select>
+    </div>
     
     <label>Frequency:</label>
     <select name="frequency">
@@ -23,6 +44,16 @@
     
     <button type="submit" class="btn">Create Habit</button>
 </form>
+
+<script>
+function toggleProgressFields() {
+    var type = document.getElementById('habitType').value;
+    var progressDiv = document.getElementById('progressFields');
+    if (type === 'progress') {
+        progressDiv.style.display = 'block';
+    } else {
+        progressDiv.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}
-
-

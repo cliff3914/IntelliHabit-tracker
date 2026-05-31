@@ -2,21 +2,33 @@
 
 {% block content %}
 <h1>Complete: {{ habit.name }}</h1>
-<form method="post">
-    <label>Notes (optional):</label>
-    <textarea name="notes" rows="3" placeholder="How did it go?"></textarea>
-    
-    <label>How do you feel?</label>
-    <select name="mood">
-        <option value="5">😊 Great!</option>
-        <option value="4">🙂 Good</option>
-        <option value="3">😐 Okay</option>
-        <option value="2">😕 Not great</option>
-        <option value="1">😫 Difficult</option>
-    </select>
-    
-    <button type="submit" class="btn">Complete Habit</button>
-</form>
+
+{% if habit.target_value and habit.target_value > 0 %}
+    <div style="text-align: center; padding: 20px;">
+        <h2>Current Progress</h2>
+        <div style="font-size: 48px; font-weight: bold;">
+            {{ habit.current_value|round(1) }} / {{ habit.target_value|round(1) }}
+        </div>
+        <div style="font-size: 24px;">{{ habit.unit }}</div>
+        
+        <div style="width: 100%; background: #e0e0e0; border-radius: 10px; margin: 20px 0;">
+            <div style="width: {{ (habit.current_value / habit.target_value * 100)|round }}%; background: #4CAF50; height: 30px; border-radius: 10px; text-align: center; color: white; line-height: 30px;">
+                {{ (habit.current_value / habit.target_value * 100)|round }}%
+            </div>
+        </div>
+        
+        <form method="post">
+            <label>How much did you complete?</label>
+            <input type="number" name="progress_value" step="any" placeholder="Enter amount in {{ habit.unit }}" required>
+            <button type="submit" class="btn">Add Progress</button>
+        </form>
+    </div>
+{% else %}
+    <form method="post">
+        <p>Click the button below to mark this habit as complete.</p>
+        <button type="submit" class="btn">Complete Habit</button>
+    </form>
+{% endif %}
+
+<a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
 {% endblock %}
-
-

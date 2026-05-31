@@ -1,21 +1,205 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Welcome {{ current_user.username }}! 👋</h1>
+<div class="dashboard-header">
+    <h1>Build Habits</h1>
+    <p>Plan your goals</p>
+    
+    <div class="time-display">
+        {{ now.strftime('%H:%M') }}
+    </div>
+    
+    <div class="filter-tabs">
+        <button class="filter-btn active" onclick="filterHabits('all')">All</button>
+        <button class="filter-btn" onclick="filterHabits('today')">Today</button>
+    </div>
+</div>
 
-{% if habits %}
-    <h2>Your Habits</h2>
+<div class="habits-grid">
     {% for habit in habits %}
-    <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px;">
-        <h3>{{ habit.name }}</h3>
-        <p>{{ habit.description or 'No description' }}</p>
-        <p>🔥 Streak: {{ habit.streak }} days</p>
-        <a href="/complete_habit/{{ habit.id }}" class="btn">✅ Complete</a>
+    <div class="habit-card">
+        <div class="habit-icon">
+            {% if 'water' in habit.name.lower() %}💧
+            {% elif 'yoga' in habit.name.lower() %}🧘
+            {% elif 'run' in habit.name.lower() %}🏃
+            {% elif 'walk' in habit.name.lower() %}🚶
+            {% elif 'meditation' in habit.name.lower() %}🧠
+            {% else %}⭐
+            {% endif %}
+        </div>
+        
+        <div class="habit-info">
+            <h3>{{ habit.name }}</h3>
+            
+            {% if habit.target_value and habit.target_value > 0 %}
+                <div class="progress-text">
+                    {{ habit.current_value|round(0) }}/{{ habit.target_value|round(0) }} {{ habit.unit }}
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (habit.current_value / habit.target_value * 100)|round }}%;"></div>
+                </div>
+            {% else %}
+                <div class="habit-badge">Daily Habit</div>
+            {% endif %}
+            
+            <div class="streak-info">
+                🔥 {{ habit.streak }} Days
+            </div>
+        </div>
+        
+        <div class="habit-actions">
+            {% set today_completed = habit.last_completed and habit.last_completed.date() == now.date() %}
+            {% if today_completed %}
+                <span class="completed-badge">✅ Completed</span>
+            {% else %}
+                <a href="{{ url_for('complete_habit', habit_id=habit.id) }}" class="complete-btn">Complete</a>
+            {% endif %}
+        </div>
     </div>
     {% endfor %}
-{% else %}
-    <p>You don't have any habits yet. Click below to add one!</p>
-{% endif %}
+</div>
 
-<a href="/add_habit" class="btn">➕ Add New Habit</a>
+<a href="{{ url_for('add_habit') }}" class="float-add-btn">+</a>
+
+<style>
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 2em;
+    margin-bottom: 5px;
+}
+.time-display {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin: 10px 0;
+}
+.filter-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+.filter-btn {
+    padding: 8px 20px;
+    border: none;
+    background: #e0e0e0;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.filter-btn.active {
+    background: #667eea;
+    color: white;
+}
+.habits-grid {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 80px;
+}
+.habit-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.habit-icon {
+    font-size: 2.5em;
+    min-width: 60px;
+    text-align: center;
+}
+.habit-info {
+    flex: 1;
+}
+.habit-info h3 {
+    margin: 0 0 5px 0;
+}
+.progress-text {
+    font-size: 0.8em;
+    color: #666;
+}
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    margin: 8px 0;
+}
+.progress-fill {
+    height: 100%;
+    background: #4CAF50;
+    border-radius: 3px;
+}
+.streak-info {
+    font-size: 0.8em;
+    color: #ff9800;
+}
+.habit-badge {
+    font-size: 0.7em;
+    background: #e8e8e8;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+.complete-btn {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+}
+.completed-badge {
+    color: #4CAF50;
+    font-weight: bold;
+}
+.float-add-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #667eea;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+body.dark-mode .habit-card {
+    background: #1a1a2e;
+}
+@media (max-width: 768px) {
+    .habit-card {
+        flex-wrap: wrap;
+    }
+    .habit-actions {
+        width: 100%;
+        text-align: right;
+    }
+}
+</style>
+
+<script>
+function filterHabits(filter) {
+    const cards = document.querySelectorAll('.habit-card');
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (filter === 'all') {
+        cards.forEach(card => card.style.display = 'flex');
+    } else if (filter === 'today') {
+        cards.forEach(card => {
+            const completedBadge = card.querySelector('.completed-badge');
+            card.style.display = completedBadge ? 'flex' : 'none';
+        });
+    }
+}
+</script>
 {% endblock %}

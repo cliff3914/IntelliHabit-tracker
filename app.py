@@ -40,6 +40,9 @@ class Habit(db.Model):
     streak = db.Column(db.Integer, default=0)
     target_streak = db.Column(db.Integer, default=30)
     last_completed = db.Column(db.DateTime)
+    target_value = db.Column(db.Float, default=1.0)
+    current_value = db.Column(db.Float, default=0.0)
+    unit = db.Column(db.String(50), default='times')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 @login_manager.user_loader
@@ -101,14 +104,17 @@ def logout():
 def dashboard():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     
+    total_habits = len(habits)
+    completed_today = sum(1 for h in habits if h.last_completed and h.last_completed.date() == datetime.utcnow().date())
+    
     stats = {
-        'total': len(habits),
-        'completed_today': 0,
-        'avg_streak': 0,
-        'longest_streak': 0
+        'total': total_habits,
+        'completed_today': completed_today,
+        'avg_streak': round(sum(h.streak for h in habits) / total_habits, 1) if total_habits > 0 else 0,
+        'longest_streak': max([h.streak for h in habits], default=0)
     }
     
-    return render_template('dashboard.html', habits=habits, stats=stats)
+    return render_template('dashboard.html', habits=habits, stats=stats, now=datetime.utcnow())
 
 @app.route('/add_habit', methods=['GET', 'POST'])
 @login_required
@@ -119,6 +125,7 @@ def add_habit():
         frequency = request.form.get('frequency')
         reminder_time = request.form.get('reminder_time')
         target_streak = request.form.get('target_streak', 30)
+        habit_type = request.form.get('habit_type', 'boolean')
         
         habit = Habit(
             name=name,
@@ -128,6 +135,12 @@ def add_habit():
             target_streak=int(target_streak),
             user_id=current_user.id
         )
+        
+        # Add progress tracking fields if habit type is progress
+        if habit_type == 'progress':
+            habit.target_value = float(request.form.get('target_value', 1))
+            habit.unit = request.form.get('unit', 'times')
+            habit.current_value = 0
         
         db.session.add(habit)
         db.session.commit()
@@ -150,15 +163,39 @@ def complete_habit(habit_id):
         today = datetime.utcnow().date()
         last_completed = habit.last_completed.date() if habit.last_completed else None
         
-        if last_completed == today - timedelta(days=1):
-            habit.streak += 1
-        elif last_completed != today:
-            habit.streak = 1
+        # Check if progress habit or simple habit
+        if habit.target_value and habit.target_value > 0:
+            # Progress habit - add progress value
+            progress_value = float(request.form.get('progress_value', 0))
+            habit.current_value = min(habit.current_value + progress_value, habit.target_value)
+            
+            # Only mark complete if target reached
+            if habit.current_value >= habit.target_value:
+                habit.current_value = 0
+                habit.last_completed = datetime.utcnow()
+                if last_completed == today - timedelta(days=1):
+                    habit.streak += 1
+                else:
+                    habit.streak = 1
+                flash(f' Target reached! {habit.streak} day streak!')
+            else:
+                flash(f'Progress: {habit.current_value}/{habit.target_value} {habit.unit}')
+                db.session.commit()
+                return redirect(url_for('dashboard'))
+        else:
+            # Simple habit - complete in one click
+            if last_completed == today:
+                flash('Already completed today!')
+                return redirect(url_for('dashboard'))
+            
+            habit.last_completed = datetime.utcnow()
+            if last_completed == today - timedelta(days=1):
+                habit.streak += 1
+            else:
+                habit.streak = 1
+            flash(f'Great job! {habit.streak} day streak!')
         
-        habit.last_completed = datetime.utcnow()
         db.session.commit()
-        
-        flash(f'Great job! You completed {habit.name}!')
         return redirect(url_for('dashboard'))
     
     return render_template('complete_habit.html', habit=habit)
