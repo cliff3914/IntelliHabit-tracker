@@ -43,7 +43,7 @@ class Habit(db.Model):
     target_value = db.Column(db.Float, default=1.0)
     current_value = db.Column(db.Float, default=0.0)
     unit = db.Column(db.String(50), default='times')
-     # New reminder fields
+ # New reminder fields
     reminder_type = db.Column(db.String(20), default='time')  # 'time' or 'location'
     reminder_location = db.Column(db.String(200))  # e.g., "Home", "Gym", "Office"
     reminder_time_range = db.Column(db.String(50))  # 'morning', 'afternoon', 'evening', 'anytime'
