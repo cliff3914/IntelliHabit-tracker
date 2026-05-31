@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<!-- Test Notification Button -->
+<div style="position: fixed; bottom: 100px; right: 10px; z-index: 9999;">
+    <button onclick="testNotif()" style="background: #667eea; color: white; border: none; border-radius: 50px; padding: 10px 20px; cursor: pointer;">
+        🔔 Test Notification
+    </button>
+</div>
+
 <!-- Dashboard Header -->
 <div class="dashboard-header">
     <h1>🏆 Build Habits</h1>
@@ -420,5 +428,38 @@ function drawChart() {
 document.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
 });
+
+<!-- Test Notification Button -->
+<div style="position: fixed; bottom: 100px; right: 10px; z-index: 9999;">
+    <button onclick="testNotif()" style="background: #667eea; color: white; border: none; border-radius: 50px; padding: 10px 20px; cursor: pointer;">
+        🔔 Test Notification
+    </button>
+</div>
+
+<script>
+function testNotif() {
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            new Notification('IntelliHabit Test', {
+                body: 'Your notifications are working!',
+                icon: 'https://intellihabit-tracker.onrender.com/static/icon-192.png'
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification('IntelliHabit Test', {
+                        body: 'Notifications enabled! You will now receive reminders.',
+                        icon: 'https://intellihabit-tracker.onrender.com/static/icon-192.png'
+                    });
+                }
+            });
+        } else {
+            alert('Notifications are blocked. Please check your browser settings.');
+        }
+    } else {
+        alert('Your browser does not support notifications');
+    }
+}
+
 </script>
 {% endblock %}
