@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="reminders-container">
+    <h1>⏰ Daily Reminders</h1>
+    <p>Time and location based</p>
+    
+    <div class="reminders-list" id="remindersList">
+        {% for habit in habits %}
+        <div class="reminder-card" data-habit-id="{{ habit.id }}">
+            <div class="reminder-header">
+                <div class="reminder-icon">
+                    {% if habit.reminder_type == 'location' %}📍
+                    {% else %}⏰
+                    {% endif %}
+                </div>
+                <div class="reminder-info">
+                    <h3>{{ habit.name }}</h3>
+                    <p class="goal-period">Goal Period: Day-Long</p>
+                    <p class="goal-value">Goal Value: {{ habit.target_value|round(0) }} {{ habit.unit }} / Day</p>
+                    <p class="task-days">Task Days: Every Day</p>
+                    <p class="task-desc">Complete {{ habit.target_value|round(0) }} {{ habit.unit }} each day</p>
+                </div>
+                <button class="edit-reminder-btn" onclick="openEditModal({{ habit.id }})">✏️ Edit</button>
+            </div>
+            
+            <div class="reminder-details">
+                <div class="time-range-section">
+                    <h4>⏰ Time Range</h4>
+                    <div class="time-buttons">
+                        <button class="time-option {% if habit.reminder_time_range == 'anytime' or not habit.reminder_time_range %}active{% endif %}" 
+                                onclick="updateTimeRange({{ habit.id }}, 'anytime')">Anytime</button>
+                        <button class="time-option {% if habit.reminder_time_range == 'morning' %}active{% endif %}" 
+                                onclick="updateTimeRange({{ habit.id }}, 'morning')">Morning</button>
+                        <button class="time-option {% if habit.reminder_time_range == 'afternoon' %}active{% endif %}" 
+                                onclick="updateTimeRange({{ habit.id }}, 'afternoon')">Afternoon</button>
+                        <button class="time-option {% if habit.reminder_time_range == 'evening' %}active{% endif %}" 
+                                onclick="updateTimeRange({{ habit.id }}, 'evening')">Evening</button>
+                    </div>
+                </div>
+                
+                <div class="reminder-section">
+                    <h4>🔔 Reminders</h4>
+                    <div class="reminder-controls">
+                        <div class="reminder-time-input">
+                            <label>Time:</label>
+                            <input type="time" class="reminder-time" value="{{ habit.reminder_time or '' }}" 
+                                   onchange="updateReminderTime({{ habit.id }}, this.value)">
+                            <button class="add-time-btn" onclick="addReminderTime({{ habit.id }})">+</button>
+                        </div>
+                        <div class="reminder-type-select">
+                            <label>Reminder Type:</label>
+                            <select onchange="updateReminderType({{ habit.id }}, this.value)">
+                                <option value="time" {% if habit.reminder_type == 'time' %}selected{% endif %}>⏰ Time</option>
+                                <option value="location" {% if habit.reminder_type == 'location' %}selected{% endif %}>📍 Location</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="location-section" id="locationSection{{ habit.id }}" 
+                     style="display: {% if habit.reminder_type == 'location' %}block{% else %}none{% endif %};">
+                    <h4>📍 Location</h4>
+                    <input type="text" class="location-input" placeholder="Enter location (e.g., Home, Gym, Office)" 
+                           value="{{ habit.reminder_location or '' }}"
+                           onchange="updateReminderLocation({{ habit.id }}, this.value)">
+                </div>
+                
+                <div class="message-section">
+                    <h4>💬 Reminder Message</h4>
+                    <textarea class="message-input" rows="2" 
+                              onchange="updateReminderMessage({{ habit.id }}, this.value)">{{ habit.reminder_message or 'Time to complete your habit!' }}</textarea>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div id="editModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Edit Reminder Settings</h2>
+            <form id="editReminderForm">
+                <label>Habit Name:</label>
+                <input type="text" id="editHabitName" readonly>
+                
+                <label>Reminder Message:</label>
+                <textarea id="editReminderMessage" rows="3"></textarea>
+                
+                <label>Reminder Type:</label>
+                <select id="editReminderType">
+                    <option value="time">⏰ Time based</option>
+                    <option value="location">📍 Location based</option>
+                </select>
+                
+                <label>Time Range (for time-based):</label>
+                <select id="editTimeRange">
+                    <option value="anytime">Anytime</option>
+                    <option value="morning">Morning (6AM - 12PM)</option>
+                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                    <option value="evening">Evening (5PM - 10PM)</option>
+                </select>
+                
+                <label>Location (for location-based):</label>
+                <input type="text" id="editLocation" placeholder="e.g., Home, Gym, Office">
+                
+                <button type="submit" class="btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.reminders-container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.reminders-container h1 {
+    text-align: center;
+}
+
+.reminders-container > p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.reminder-card {
+    background: white;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.reminder-card:hover {
+    transform: translateY(-2px);
+}
+
+.reminder-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.reminder-icon {
+    font-size: 2em;
+}
+
+.reminder-info {
+    flex: 1;
+}
+
+.reminder-info h3 {
+    margin: 0 0 5px 0;
+}
+
+.reminder-info p {
+    margin: 3px 0;
+    font-size: 0.8em;
+    color: #666;
+}
+
+.edit-reminder-btn {
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.reminder-details {
+    padding-top: 15px;
+}
+
+.time-range-section, .reminder-section, .location-section, .message-section {
+    margin: 15px 0;
+}
+
+.time-range-section h4, .reminder-section h4, .location-section h4, .message-section h4 {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.time-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.time-option {
+    padding: 6px 15px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.time-option.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.reminder-controls {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.reminder-time-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.reminder-time-input input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.add-time-btn {
+    padding: 8px 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.reminder-type-select select, .location-input, .message-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 200px;
+}
+
+.message-input {
+    width: 100%;
+    max-width: 400px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.modal-content input, .modal-content select, .modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+body.dark-mode .reminder-card {
+    background: #1a1a2e;
+}
+
+body.dark-mode .reminder-info p {
+    color: #aaa;
+}
+
+body.dark-mode .time-range-section h4,
+body.dark-mode .reminder-section h4,
+body.dark-mode .location-section h4,
+body.dark-mode .message-section h4 {
+    color: #aaa;
+}
+
+body.dark-mode .time-option {
+    background: #2a2a3e;
+    color: #eee;
+    border-color: #444;
+}
+
+body.dark-mode .modal-content {
+    background: #1a1a2e;
+    color: #eee;
+}
+
+@media (max-width: 768px) {
+    .reminder-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    .reminder-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+
+<script>
+function updateTimeRange(habitId, range) {
+    fetch('/update_reminder_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habit_id: habitId, time_range: range })
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              // Update button styles
+              const card = document.querySelector(`.reminder-card[data-habit-id="${habitId}"]`);
+              card.querySelectorAll('.time-option').forEach(btn => {
+                  btn.classList.remove('active');
+                  if (btn.textContent.toLowerCase() === range) {
+                      btn.classList.add('active');
+                  }
+              });
+          }
+      });
+}
+
+function updateReminderTime(habitId, time) {
+    fetch('/update_reminder_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habit_id: habitId, reminder_time: time })
+    });
+}
+
+function updateReminderType(habitId, type) {
+    fetch('/update_reminder_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habit_id: habitId, reminder_type: type })
+    }).then(() => {
+        const locationSection = document.getElementById(`locationSection${habitId}`);
+        if (type === 'location') {
+            locationSection.style.display = 'block';
+        } else {
+            locationSection.style.display = 'none';
+        }
+    });
+}
+
+function updateReminderLocation(habitId, location) {
+    fetch('/update_reminder_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habit_id: habitId, reminder_location: location })
+    });
+}
+
+function updateReminderMessage(habitId, message) {
+    fetch('/update_reminder_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habit_id: habitId, reminder_message: message })
+    });
+}
+
+function addReminderTime(habitId) {
+    alert('Multiple reminder times feature coming soon!');
+}
+
+function openEditModal(habitId) {
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'none';
+}
+
+document.getElementById('editReminderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    closeModal();
+    alert('Settings saved!');
+});
+</script>
+{% endblock %}

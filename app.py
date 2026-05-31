@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -43,6 +43,26 @@ class Habit(db.Model):
     target_value = db.Column(db.Float, default=1.0)
     current_value = db.Column(db.Float, default=0.0)
     unit = db.Column(db.String(50), default='times')
+    class Habit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(200))
+    frequency = db.Column(db.String(20))
+    reminder_time = db.Column(db.String(10))
+    reminder_method = db.Column(db.String(50))
+    streak = db.Column(db.Integer, default=0)
+    target_streak = db.Column(db.Integer, default=30)
+    last_completed = db.Column(db.DateTime)
+    target_value = db.Column(db.Float, default=1.0)
+    current_value = db.Column(db.Float, default=0.0)
+    unit = db.Column(db.String(50), default='times')
+    
+    # New reminder fields
+    reminder_type = db.Column(db.String(20), default='time')  # 'time' or 'location'
+    reminder_location = db.Column(db.String(200))  # e.g., "Home", "Gym", "Office"
+    reminder_time_range = db.Column(db.String(50))  # 'morning', 'afternoon', 'evening', 'anytime'
+    reminder_message = db.Column(db.String(500), default="Time to complete your habit!")
+    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 @login_manager.user_loader
@@ -274,6 +294,36 @@ def timer():
 def report():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     return render_template('report.html', habits=habits)
+
+@app.route('/update_reminder_settings', methods=['POST'])
+@login_required
+def update_reminder_settings():
+    data = request.get_json()
+    habit_id = data.get('habit_id')
+    habit = Habit.query.get_or_404(habit_id)
+    
+    if habit.user_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'})
+    
+    if 'time_range' in data:
+        habit.reminder_time_range = data['time_range']
+    if 'reminder_time' in data:
+        habit.reminder_time = data['reminder_time']
+    if 'reminder_type' in data:
+        habit.reminder_type = data['reminder_type']
+    if 'reminder_location' in data:
+        habit.reminder_location = data['reminder_location']
+    if 'reminder_message' in data:
+        habit.reminder_message = data['reminder_message']
+    
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/reminders')
+@login_required
+def reminders():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    return render_template('reminders.html', habits=habits)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
