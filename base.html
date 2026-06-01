@@ -15,13 +15,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            padding-bottom: 80px;
         }
         
         /* Bottom Navigation Bar */
@@ -65,8 +59,17 @@
             color: #667eea;
         }
         
-        .main-content {
-            padding-bottom: 80px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            min-height: 400px;
         }
         
         .alert {
@@ -87,17 +90,11 @@
             border-radius: 5px;
             border: none;
             cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .btn:hover {
-            background: #5a67d8;
         }
         
         /* Dark Mode */
         body.dark-mode {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #eee;
         }
         
         body.dark-mode .bottom-nav {
@@ -113,9 +110,9 @@
             color: #e94560;
         }
         
-        body.dark-mode .alert {
-            background: #1e3a2f;
-            color: #a8e6cf;
+        body.dark-mode .content {
+            background: #1a1a2e;
+            color: #eee;
         }
         
         @media (max-width: 600px) {
@@ -130,15 +127,6 @@
             }
             .nav-label {
                 font-size: 0.55em;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            .bottom-nav {
-                max-width: 500px;
-                left: 50%;
-                transform: translateX(-50%);
-                border-radius: 20px 20px 0 0;
             }
         }
     </style>
@@ -175,17 +163,9 @@
         <span class="nav-icon">📅</span>
         <span class="nav-label">Calendar</span>
     </a>
-    <a href="/test_notification" class="nav-item">
-        <span class="nav-icon">🔔</span>
-        <span class="nav-label">Test Notify</span>
-    </a>
     <a href="/settings" class="nav-item">
         <span class="nav-icon">⚙️</span>
         <span class="nav-label">Settings</span>
-    </a>
-    <a href="/friends" class="nav-item">
-        <span class="nav-icon">👥</span>
-        <span class="nav-label">Friends</span>
     </a>
     <a href="/profile" class="nav-item">
         <span class="nav-icon">👤</span>
@@ -194,16 +174,16 @@
 </div>
 
 <!-- Main Content -->
-<div class="main-content">
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="content">
         {% block content %}{% endblock %}
     </div>
 </div>
@@ -214,33 +194,18 @@
         document.body.classList.toggle('dark-mode');
         const isDarkMode = document.body.classList.contains('dark-mode');
         localStorage.setItem('darkMode', isDarkMode);
-        const btn = document.getElementById('darkModeBtn');
-        if (btn) {
-            btn.textContent = isDarkMode ? '☀️' : '🌙';
-        }
     }
     
-    // Load saved dark mode preference
-    document.addEventListener('DOMContentLoaded', function() {
-        const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (savedDarkMode) {
-            document.body.classList.add('dark-mode');
-            const btn = document.getElementById('darkModeBtn');
-            if (btn) btn.textContent = '☀️';
-        }
-    });
+    // Load saved dark mode
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
     
-    // Highlight active navigation item
-    document.addEventListener('DOMContentLoaded', function() {
-        const currentPath = window.location.pathname;
-        const navItems = document.querySelectorAll('.nav-item');
-        
-        navItems.forEach(item => {
-            const href = item.getAttribute('href');
-            if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
-                item.classList.add('active');
-            }
-        });
+    // Highlight active nav item
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.getAttribute('href') === window.location.pathname) {
+            item.classList.add('active');
+        }
     });
 </script>
 
