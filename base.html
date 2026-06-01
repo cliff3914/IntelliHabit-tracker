@@ -1,68 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IntelliHabit Tracker</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
-
+        
         .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        h1 { color: #667eea; }
-
-        .btn {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            margin: 5px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn:hover { background: #5a67d8; }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0 15px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .alert {
-            padding: 10px;
-            margin: 10px 0;
-            background: #d4edda;
-            border-radius: 5px;
-            color: #155724;
-        }
-
-        .content {
-            min-height: 400px;
-        }
-
-        /* Bottom Navigation Bar Styles */
+        
+        /* Bottom Navigation Bar */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -75,57 +37,102 @@
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
             border-top: 1px solid #eee;
+            flex-wrap: wrap;
         }
-
+        
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
             color: #888;
-            font-size: 0.75em;
+            font-size: 0.7em;
             transition: all 0.3s;
             padding: 5px 8px;
             border-radius: 10px;
         }
-
+        
         .nav-icon {
-            font-size: 1.5em;
+            font-size: 1.3em;
             margin-bottom: 2px;
         }
-
+        
         .nav-label {
-            font-size: 0.7em;
+            font-size: 0.65em;
         }
-
-        .nav-item:hover {
-            transform: translateY(-2px);
-        }
-
+        
         .nav-item.active {
             color: #667eea;
         }
-
-        /* Dark Mode Support */
+        
+        .main-content {
+            padding-bottom: 80px;
+        }
+        
+        .alert {
+            padding: 12px 20px;
+            margin: 10px 0;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        /* Dark Mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+        }
+        
         body.dark-mode .bottom-nav {
             background: #1a1a2e;
             border-top-color: #2a2a3e;
         }
-
+        
         body.dark-mode .nav-item {
             color: #aaa;
         }
-
+        
         body.dark-mode .nav-item.active {
             color: #e94560;
         }
-
-        /* Main Content - Add padding so content doesn't hide behind bottom nav */
-        .main-content {
-            padding-bottom: 80px;
+        
+        body.dark-mode .alert {
+            background: #1e3a2f;
+            color: #a8e6cf;
         }
-
-        /* Make bottom nav centered on larger screens */
+        
+        @media (max-width: 600px) {
+            .bottom-nav {
+                padding: 8px 3px;
+            }
+            .nav-item {
+                padding: 4px 6px;
+            }
+            .nav-icon {
+                font-size: 1.1em;
+            }
+            .nav-label {
+                font-size: 0.55em;
+            }
+        }
+        
         @media (min-width: 768px) {
             .bottom-nav {
                 max-width: 500px;
@@ -134,128 +141,108 @@
                 border-radius: 20px 20px 0 0;
             }
         }
-
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
-            .bottom-nav {
-                padding: 8px 5px;
-            }
-            .nav-icon {
-                font-size: 1.3em;
-            }
-            .nav-label {
-                font-size: 0.65em;
-            }
-        }
-
-        /* Fix habit button clickability */
-        .habit-actions a {
-            pointer-events: auto !important;
-            z-index: 100 !important;
-            position: relative;
-        }
-
-        .complete-btn {
-            display: inline-block;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Bottom Navigation Bar -->
-    <div class="bottom-nav">
-        <a href="/" class="nav-item">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">Home</span>
-        </a>
-        <a href="/dashboard" class="nav-item">
-            <span class="nav-icon">📊</span>
-            <span class="nav-label">Dashboard</span>
-        </a>
-        <a href="/add_habit" class="nav-item">
-            <span class="nav-icon">➕</span>
-            <span class="nav-label">Add</span>
-        </a>
-        <a href="/timer" class="nav-item">
-            <span class="nav-icon">⏱️</span>
-            <span class="nav-label">Timer</span>
-        </a>
-        <a href="/motivation" class="nav-item">
-            <span class="nav-icon">💪</span>
-            <span class="nav-label">Motivate</span>
-        </a>
-        <a href="/widgets" class="nav-item">
-            <span class="nav-icon">📱</span>
-            <span class="nav-label">Widgets</span>
-        </a>
-        <a href="/calendar" class="nav-item">
-            <span class="nav-icon">📅</span>
-            <span class="nav-label">Calendar</span>
-        </a>
-        <a href="/test_notification" class="nav-item">
-            <span class="nav-icon">🔔</span>
-            <span class="nav-label">Test Notify</span>
-        </a>
-        <a href="/settings" class="nav-item">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-label">Settings</span>
-        </a>
-        <a href="/friends" class="nav-item">
-            <span class="nav-icon">👥</span>
-            <span class="nav-label">Friends</span>
-        </a>
-        <a href="/profile" class="nav-item">
-            <span class="nav-icon">👤</span>
-            <span class="nav-label">Profile</span>
-        </a>
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+    <a href="/" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="/dashboard" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="/add_habit" class="nav-item">
+        <span class="nav-icon">➕</span>
+        <span class="nav-label">Add</span>
+    </a>
+    <a href="/timer" class="nav-item">
+        <span class="nav-icon">⏱️</span>
+        <span class="nav-label">Timer</span>
+    </a>
+    <a href="/motivation" class="nav-item">
+        <span class="nav-icon">💪</span>
+        <span class="nav-label">Motivate</span>
+    </a>
+    <a href="/widgets" class="nav-item">
+        <span class="nav-icon">📱</span>
+        <span class="nav-label">Widgets</span>
+    </a>
+    <a href="/calendar" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Calendar</span>
+    </a>
+    <a href="/test_notification" class="nav-item">
+        <span class="nav-icon">🔔</span>
+        <span class="nav-label">Test Notify</span>
+    </a>
+    <a href="/settings" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+    </a>
+    <a href="/friends" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Friends</span>
+    </a>
+    <a href="/profile" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+    </a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
     </div>
+</div>
 
-    <!-- Main Content Area -->
-    <div class="main-content">
-        <div class="container">
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            <!-- Page Content -->
-            <div class="content">
-                {% block content %}{% endblock %}
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Highlight active navigation item based on current page
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentPath = window.location.pathname;
-            const navItems = document.querySelectorAll('.nav-item');
-            
-            navItems.forEach(item => {
-                const href = item.getAttribute('href');
-                if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
-                    item.classList.add('active');
-                }
-            });
-        });
-
-        // Dark mode toggle function (if you have it)
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
+<script>
+    // Dark mode toggle
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDarkMode);
+        const btn = document.getElementById('darkModeBtn');
+        if (btn) {
+            btn.textContent = isDarkMode ? '☀️' : '🌙';
         }
-
-        // Load dark mode preference
-        if (localStorage.getItem('darkMode') === 'true') {
+    }
+    
+    // Load saved dark mode preference
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (savedDarkMode) {
             document.body.classList.add('dark-mode');
+            const btn = document.getElementById('darkModeBtn');
+            if (btn) btn.textContent = '☀️';
         }
-    </script>
+    });
+    
+    // Highlight active navigation item
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const navItems = document.querySelectorAll('.nav-item');
+        
+        navItems.forEach(item => {
+            const href = item.getAttribute('href');
+            if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
