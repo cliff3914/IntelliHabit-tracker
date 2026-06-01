@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import threading
@@ -13,6 +14,15 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-produ
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///habits.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Mail configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
+
+mail = Mail(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -24,6 +34,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
+    phone_number = db.Column(db.String(20))
+    email_notifications = db.Column(db.Boolean, default=True)
+    sms_notifications = db.Column(db.Boolean, default=False)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -43,12 +56,10 @@ class Habit(db.Model):
     target_value = db.Column(db.Float, default=1.0)
     current_value = db.Column(db.Float, default=0.0)
     unit = db.Column(db.String(50), default='times')
- # New reminder fields
-    reminder_type = db.Column(db.String(20), default='time')  # 'time' or 'location'
-    reminder_location = db.Column(db.String(200))  # e.g., "Home", "Gym", "Office"
-    reminder_time_range = db.Column(db.String(50))  # 'morning', 'afternoon', 'evening', 'anytime'
+    reminder_type = db.Column(db.String(20), default='time')
+    reminder_location = db.Column(db.String(200))
+    reminder_time_range = db.Column(db.String(50))
     reminder_message = db.Column(db.String(500), default="Time to complete your habit!")
-    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
 class HabitCompletion(db.Model):
@@ -83,6 +94,11 @@ def register():
         user = User.query.filter_by(username=username).first()
         if user:
             flash('Username already exists')
+            return redirect(url_for('register'))
+        
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email already registered')
             return redirect(url_for('register'))
         
         new_user = User(username=username, email=email)
@@ -154,7 +170,6 @@ def add_habit():
             user_id=current_user.id
         )
         
-        # Add progress tracking fields if habit type is progress
         if habit_type == 'progress':
             habit.target_value = float(request.form.get('target_value', 1))
             habit.unit = request.form.get('unit', 'times')
@@ -181,13 +196,10 @@ def complete_habit(habit_id):
         today = datetime.utcnow().date()
         last_completed = habit.last_completed.date() if habit.last_completed else None
         
-        # Check if progress habit or simple habit
         if habit.target_value and habit.target_value > 0:
-            # Progress habit - add progress value
             progress_value = float(request.form.get('progress_value', 0))
             habit.current_value = min(habit.current_value + progress_value, habit.target_value)
             
-            # Only mark complete if target reached
             if habit.current_value >= habit.target_value:
                 habit.current_value = 0
                 habit.last_completed = datetime.utcnow()
@@ -201,7 +213,6 @@ def complete_habit(habit_id):
                 db.session.commit()
                 return redirect(url_for('dashboard'))
         else:
-            # Simple habit - complete in one click
             if last_completed == today:
                 flash('Already completed today!')
                 return redirect(url_for('dashboard'))
@@ -221,23 +232,19 @@ def complete_habit(habit_id):
 @app.route('/test-email')
 @login_required
 def test_email():
-    from flask_mail import Message
-    msg = Message('Test Email',
-                  recipients=[current_user.email],
-                  body='This is a test!')
-    mail.send(msg)
-    return 'Email sent! Check your inbox.'
+    try:
+        msg = Message('Test Email',
+                      recipients=[current_user.email],
+                      body='This is a test email from IntelliHabit Tracker!')
+        mail.send(msg)
+        flash('Test email sent! Check your inbox.')
+    except Exception as e:
+        flash(f'Error sending email: {str(e)}')
+    return redirect(url_for('dashboard'))
 
 @app.route('/send-reminders')
 def send_reminders():
-    """Check all habits and send email reminders"""
-    from flask_mail import Message
-    from datetime import datetime
-    
     current_time = datetime.now().strftime("%H:%M")
-    print(f"Checking reminders for time: {current_time}")
-    
-    # Find habits with matching reminder time
     habits = Habit.query.filter_by(reminder_time=current_time).all()
     
     count = 0
@@ -248,11 +255,10 @@ def send_reminders():
                 msg = Message(
                     f'Reminder: {habit.name}',
                     recipients=[user.email],
-                    body=f"Hi {user.username},\n\nIt's time to complete your habit: {habit.name}\n\nKeep up the great work!\n\n- IntelliHabit Tracker"
+                    body=f"Hi {user.username},\n\nIt's time to complete your habit: {habit.name}\n\nKeep up the great work!"
                 )
                 mail.send(msg)
                 count += 1
-                print(f"Reminder sent to {user.email} for {habit.name}")
             except Exception as e:
                 print(f"Error sending to {user.email}: {e}")
     
@@ -261,22 +267,18 @@ def send_reminders():
 @app.route('/test-reminder')
 @login_required
 def test_reminder():
-    """Manually send a test reminder to yourself"""
-    from flask_mail import Message
-    
-    msg = Message(
-        'Test Reminder',
-        recipients=[current_user.email],
-        body=f"Hi {current_user.username},\n\nThis is a test reminder. Your habit reminders will work like this!\n\n- IntelliHabit Tracker"
-    )
-    mail.send(msg)
-    flash('Test reminder sent! Check your email.', 'success')
+    try:
+        msg = Message(
+            'Test Reminder',
+            recipients=[current_user.email],
+            body=f"Hi {current_user.username},\n\nThis is a test reminder. Your habit reminders will work like this!"
+        )
+        mail.send(msg)
+        flash('Test reminder sent! Check your email.')
+    except Exception as e:
+        flash(f'Error sending reminder: {str(e)}')
     return redirect(url_for('dashboard'))
 
-# Create tables
-with app.app_context():
-    db.create_all()
-    
 @app.route('/motivation')
 @login_required
 def motivation():
@@ -292,30 +294,6 @@ def timer():
 def report():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     return render_template('report.html', habits=habits)
-
-@app.route('/update_reminder_settings', methods=['POST'])
-@login_required
-def update_reminder_settings():
-    data = request.get_json()
-    habit_id = data.get('habit_id')
-    habit = Habit.query.get_or_404(habit_id)
-    
-    if habit.user_id != current_user.id:
-        return jsonify({'success': False, 'error': 'Unauthorized'})
-    
-    if 'time_range' in data:
-        habit.reminder_time_range = data['time_range']
-    if 'reminder_time' in data:
-        habit.reminder_time = data['reminder_time']
-    if 'reminder_type' in data:
-        habit.reminder_type = data['reminder_type']
-    if 'reminder_location' in data:
-        habit.reminder_location = data['reminder_location']
-    if 'reminder_message' in data:
-        habit.reminder_message = data['reminder_message']
-    
-    db.session.commit()
-    return jsonify({'success': True})
 
 @app.route('/reminders')
 @login_required
@@ -362,7 +340,6 @@ def get_calendar_data():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     completion_data = {}
     
-    # Get last 90 days of completions
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=90)
     
@@ -375,17 +352,15 @@ def get_calendar_data():
         for comp in completions:
             date_str = comp.completed_date.strftime('%Y-%m-%d')
             if date_str not in completion_data:
-                completion_data[date_str] = {'completed': 0, 'total': 0}
-            completion_data[date_str]['completed'] += 1
+                completion_data[date_str] = 0
+            completion_data[date_str] += 1
     
-    # Calculate status for each day
     result = {}
-    for date_str, data in completion_data.items():
-        total_habits = len(habits)
-        completed = data['completed']
-        if completed == total_habits:
+    total_habits = len(habits)
+    for date_str, completed_count in completion_data.items():
+        if completed_count == total_habits:
             result[date_str] = 'completed'
-        elif completed > 0:
+        elif completed_count > 0:
             result[date_str] = 'partial'
         else:
             result[date_str] = 'missed'
@@ -409,24 +384,41 @@ def get_day_habits():
         ).first()
         
         if completion:
-            result.append({
-                'name': habit.name,
-                'status': 'completed'
-            })
+            result.append({'name': habit.name, 'status': 'completed'})
         else:
-            result.append({
-                'name': habit.name,
-                'status': 'missed'
-            })
+            result.append({'name': habit.name, 'status': 'missed'})
     
     return jsonify(result)
+
+@app.route('/update_reminder_settings', methods=['POST'])
+@login_required
+def update_reminder_settings():
+    data = request.get_json()
+    habit_id = data.get('habit_id')
+    habit = Habit.query.get_or_404(habit_id)
+    
+    if habit.user_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'})
+    
+    if 'time_range' in data:
+        habit.reminder_time_range = data['time_range']
+    if 'reminder_time' in data:
+        habit.reminder_time = data['reminder_time']
+    if 'reminder_type' in data:
+        habit.reminder_type = data['reminder_type']
+    if 'reminder_location' in data:
+        habit.reminder_location = data['reminder_location']
+    if 'reminder_message' in data:
+        habit.reminder_message = data['reminder_message']
+    
+    db.session.commit()
+    return jsonify({'success': True})
 
 @app.route('/save_subscription', methods=['POST'])
 @login_required
 def save_subscription():
     data = request.get_json()
     
-    # Check if already exists
     existing = PushSubscription.query.filter_by(
         user_id=current_user.id,
         endpoint=data.get('endpoint')
@@ -446,6 +438,23 @@ def save_subscription():
 @login_required
 def test_notification():
     return render_template('test_notification.html')
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        current_user.email_notifications = 'email_notifications' in request.form
+        current_user.sms_notifications = 'sms_notifications' in request.form
+        current_user.phone_number = request.form.get('phone_number')
+        db.session.commit()
+        flash('Settings updated successfully!')
+        return redirect(url_for('settings'))
+    
+    return render_template('settings.html')
+
+# Create tables
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

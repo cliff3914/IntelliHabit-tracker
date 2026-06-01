@@ -1,51 +1,68 @@
-<div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 10px;">
+{% extends "base.html" %}
+
+{% block content %}
+<h1>⚙️ Settings</h1>
+
+<form method="post">
+    <div class="form-group">
+        <label>
+            <input type="checkbox" name="email_notifications" {% if current_user.email_notifications %}checked{% endif %}>
+            📧 Email Notifications
+        </label>
+    </div>
+    
+    <div class="form-group">
+        <label>
+            <input type="checkbox" name="sms_notifications" {% if current_user.sms_notifications %}checked{% endif %}>
+            📱 SMS Notifications
+        </label>
+    </div>
+    
+    <div class="form-group">
+        <label>📞 Phone Number (for SMS):</label>
+        <input type="tel" name="phone_number" value="{{ current_user.phone_number or '' }}" placeholder="+1234567890">
+    </div>
+    
+    <button type="submit" class="btn">Save Settings</button>
+</form>
+
+<div style="margin-top: 30px;">
     <h3>🔔 Push Notifications</h3>
-    <button id="notifyBtn" class="btn" onclick="enablePushNotifications()">Enable Notifications</button>
-    <p id="notifyStatus" style="margin-top: 10px;"></p>
+    <button onclick="requestNotificationPermission()" class="btn">Enable Notifications</button>
+    <p id="notifyStatus"></p>
 </div>
 
 <script>
-function enablePushNotifications() {
+function requestNotificationPermission() {
     if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
-                document.getElementById('notifyStatus').innerHTML = '✅ Notifications enabled! You will receive reminders.';
-                document.getElementById('notifyBtn').style.display = 'none';
-                subscribeToPush();
+                document.getElementById('notifyStatus').innerHTML = '✅ Notifications enabled!';
             } else {
-                document.getElementById('notifyStatus').innerHTML = '❌ Notification permission denied.';
+                document.getElementById('notifyStatus').innerHTML = '❌ Notifications blocked';
             }
         });
-    } else {
-        document.getElementById('notifyStatus').innerHTML = '❌ Your browser does not support notifications.';
     }
 }
 
-function subscribeToPush() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-            registration.pushManager.subscribe({
-                userVisibleOnly: true
-            }).then(subscription => {
-                console.log('Push subscription successful:', subscription);
-                // Send subscription to server
-                fetch('/save_subscription', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subscription)
-                });
-            }).catch(error => {
-                console.log('Push subscription failed:', error);
-            });
-        });
-    }
+if ('Notification' in window && Notification.permission === 'granted') {
+    document.getElementById('notifyStatus').innerHTML = '✅ Notifications are enabled';
 }
-
-// Check current notification status on page load
-document.addEventListener('DOMContentLoaded', function() {
-    if ('Notification' in window && Notification.permission === 'granted') {
-        document.getElementById('notifyStatus').innerHTML = '✅ Notifications are enabled';
-        document.getElementById('notifyBtn').style.display = 'none';
-    }
-});
 </script>
+
+<style>
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+.form-group input[type="tel"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
