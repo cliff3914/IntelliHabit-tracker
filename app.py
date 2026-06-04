@@ -143,18 +143,21 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    habits = Habit.query.filter_by(user_id=current_user.id).all()
-    total_habits = len(habits)
+    try:
+        habits = Habit.query.filter_by(user_id=current_user.id).all()
+        total_habits = len(habits)
+        
+        stats = {
+            'total': total_habits,
+            'completed_today': 0,
+            'avg_streak': 0,
+            'longest_streak': 0
+        }
+        
+        return render_template('dashboard.html', habits=habits, stats=stats, now=datetime.utcnow())
+    except Exception as e:
+        return f"Dashboard Error: {str(e)}", 500
     
-    stats = {
-        'total': total_habits,
-        'completed_today': 0,
-        'avg_streak': 0,
-        'longest_streak': 0
-    }
-    
-    return render_template('dashboard.html', habits=habits, stats=stats, now=datetime.utcnow())
-
 @app.route('/add_habit', methods=['GET', 'POST'])
 @login_required
 def add_habit():
