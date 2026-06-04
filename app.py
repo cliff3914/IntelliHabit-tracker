@@ -457,6 +457,11 @@ def settings():
     
     return render_template('settings.html')
 
+@app.route('/friends')
+@login_required
+def friends():
+    return render_template('friends.html')
+
 # Create tables
 with app.app_context():
     db.create_all()
