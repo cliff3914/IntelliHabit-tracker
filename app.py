@@ -139,13 +139,12 @@ def logout():
 def dashboard():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     total_habits = len(habits)
-    completed_today = sum(1 for h in habits if h.last_completed and h.last_completed.date() == datetime.utcnow().date())
     
     stats = {
         'total': total_habits,
-        'completed_today': completed_today,
-        'avg_streak': round(sum(h.streak for h in habits) / total_habits, 1) if total_habits > 0 else 0,
-        'longest_streak': max([h.streak for h in habits], default=0)
+        'completed_today': 0,
+        'avg_streak': 0,
+        'longest_streak': 0
     }
     
     return render_template('dashboard.html', habits=habits, stats=stats, now=datetime.utcnow())
