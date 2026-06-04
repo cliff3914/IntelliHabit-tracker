@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="settings-container">
+    <h1>⚙️ Settings</h1>
+    <p>Manage your preferences</p>
+
+    <form method="post" class="settings-form">
+        <div class="setting-group">
+            <h3>🔔 Notification Settings</h3>
+            
+            <label class="setting-item">
+                <input type="checkbox" name="email_notifications" {% if current_user.email_notifications %}checked{% endif %}>
+                <span>📧 Email Notifications</span>
+                <small>Receive email reminders for your habits</small>
+            </label>
+            
+            <label class="setting-item">
+                <input type="checkbox" name="sms_notifications" {% if current_user.sms_notifications %}checked{% endif %}>
+                <span>📱 SMS Notifications</span>
+                <small>Receive text message reminders</small>
+            </label>
+        </div>
+        
+        <div class="setting-group">
+            <h3>📞 Contact Information</h3>
+            <div class="input-group">
+                <label for="phone_number">Phone Number:</label>
+                <input type="tel" id="phone_number" name="phone_number" 
+                       value="{{ current_user.phone_number or '' }}" 
+                       placeholder="+1234567890">
+                <small>Include country code (e.g., +1 for USA)</small>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <h3>🔔 Push Notifications</h3>
+            <button type="button" class="btn" onclick="enablePushNotifications()">Enable Notifications</button>
+            <p id="pushStatus" style="margin-top: 10px;"></p>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+            <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.settings-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.settings-container h1 {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.settings-container > p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.setting-group {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.setting-group h3 {
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    cursor: pointer;
+    flex-wrap: wrap;
+}
+
+.setting-item input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.setting-item span {
+    font-weight: bold;
+    min-width: 140px;
+}
+
+.setting-item small {
+    color: #666;
+    font-size: 0.8em;
+}
+
+.input-group {
+    margin: 15px 0;
+}
+
+.input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+.input-group small {
+    display: block;
+    color: #666;
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background: #667eea;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+}
+
+body.dark-mode .setting-group {
+    background: #1a1a2e;
+}
+
+body.dark-mode .setting-group h3 {
+    border-bottom-color: #2a2a3e;
+}
+
+body.dark-mode .setting-item small {
+    color: #aaa;
+}
+
+body.dark-mode .input-group input {
+    background: #2a2a3e;
+    color: white;
+    border-color: #3a3a4e;
+}
+
+body.dark-mode .settings-container > p {
+    color: #aaa;
+}
+</style>
+
+<script>
+function enablePushNotifications() {
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            document.getElementById('pushStatus').innerHTML = '✅ Notifications already enabled!';
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    document.getElementById('pushStatus').innerHTML = '✅ Notifications enabled!';
+                } else {
+                    document.getElementById('pushStatus').innerHTML = '❌ Notifications blocked';
+                }
+            });
+        } else {
+            document.getElementById('pushStatus').innerHTML = '❌ Notifications are blocked. Please check your browser settings.';
+        }
+    } else {
+        document.getElementById('pushStatus').innerHTML = '❌ Your browser does not support notifications';
+    }
+}
+
+// Check notification status on page load
+if ('Notification' in window && Notification.permission === 'granted') {
+    document.getElementById('pushStatus').innerHTML = '✅ Notifications are enabled';
+}
+</script>
+{% endblock %}
