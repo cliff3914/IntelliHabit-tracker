@@ -452,4 +452,46 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Bottom Navigation -->
+<div style="position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; flex-wrap: wrap;">
+    <a href="/dashboard" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #667eea;">
+        <span style="font-size: 1.3em;">📊</span>
+        <span style="font-size: 0.7em;">Dashboard</span>
+    </a>
+    <a href="/add_habit" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">➕</span>
+        <span style="font-size: 0.7em;">Add</span>
+    </a>
+    <a href="/timer" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">⏱️</span>
+        <span style="font-size: 0.7em;">Timer</span>
+    </a>
+    <a href="/motivation" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">💪</span>
+        <span style="font-size: 0.7em;">Motivate</span>
+    </a>
+    <a href="/widgets" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">📱</span>
+        <span style="font-size: 0.7em;">Widgets</span>
+    </a>
+    <a href="/calendar" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">📅</span>
+        <span style="font-size: 0.7em;">Calendar</span>
+    </a>
+    <a href="/settings" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">⚙️</span>
+        <span style="font-size: 0.7em;">Settings</span>
+    </a>
+    <a href="/profile" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888;">
+        <span style="font-size: 1.3em;">👤</span>
+        <span style="font-size: 0.7em;">Profile</span>
+    </a>
+</div>
+
+<style>
+    body {
+        padding-bottom: 80px;
+    }
+</style>
+
 {% endblock %}
