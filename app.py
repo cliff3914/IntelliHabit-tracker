@@ -512,6 +512,38 @@ def settings():
 def friends():
     return render_template('friends.html')
 
+@app.route('/force-push')
+@login_required
+def force_push():
+    from pywebpush import webpush
+    import json
+    
+    # Get your push subscription
+    sub = PushSubscription.query.filter_by(user_id=current_user.id).first()
+    
+    if not sub:
+        return "No push subscription found. Please enable push notifications in Settings first."
+    
+    try:
+        webpush(
+            subscription_info={
+                'endpoint': sub.endpoint,
+                'keys': {
+                    'p256dh': sub.p256dh,
+                    'auth': sub.auth
+                }
+            },
+            data=json.dumps({
+                'title': 'Test Push Notification',
+                'body': 'This is a direct test! Your push notifications are working.'
+            }),
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_claims={'sub': VAPID_EMAIL}
+        )
+        return "Push notification sent successfully!"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 # Create tables
 with app.app_context():
     db.create_all()
