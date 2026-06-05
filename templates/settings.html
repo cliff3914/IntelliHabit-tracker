@@ -3,47 +3,41 @@
 {% block content %}
 <div class="settings-container">
     <h1>⚙️ Settings</h1>
-    <p>Manage your preferences</p>
+    <p>Manage your notification preferences</p>
 
     <form method="post" class="settings-form">
-        <div class="setting-group">
-            <h3>🔔 Notification Settings</h3>
-            
-            <label class="setting-item">
+        <div class="form-group">
+            <label>
                 <input type="checkbox" name="email_notifications" {% if current_user.email_notifications %}checked{% endif %}>
-                <span>📧 Email Notifications</span>
-                <small>Receive email reminders for your habits</small>
+                📧 Email Notifications
             </label>
-            
-            <label class="setting-item">
+            <small>Receive email reminders for your habits</small>
+        </div>
+
+        <div class="form-group">
+            <label>
                 <input type="checkbox" name="sms_notifications" {% if current_user.sms_notifications %}checked{% endif %}>
-                <span>📱 SMS Notifications</span>
-                <small>Receive text message reminders</small>
+                📱 SMS Notifications
             </label>
+            <small>Receive text message reminders (coming soon)</small>
         </div>
-        
-        <div class="setting-group">
-            <h3>📞 Contact Information</h3>
-            <div class="input-group">
-                <label for="phone_number">Phone Number:</label>
-                <input type="tel" id="phone_number" name="phone_number" 
-                       value="{{ current_user.phone_number or '' }}" 
-                       placeholder="+1234567890">
-                <small>Include country code (e.g., +1 for USA)</small>
-            </div>
+
+        <div class="form-group">
+            <label>📞 Phone Number (for SMS)</label>
+            <input type="tel" name="phone_number" value="{{ current_user.phone_number or '' }}" placeholder="+1234567890">
+            <small>Include country code (e.g., +1 for USA)</small>
         </div>
-        
-        <div class="setting-group">
-            <h3>🔔 Push Notifications</h3>
-            <button type="button" class="btn" onclick="enablePushNotifications()">Enable Notifications</button>
-            <p id="pushStatus" style="margin-top: 10px;"></p>
-        </div>
-        
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">💾 Save Settings</button>
-            <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
-        </div>
+
+        <button type="submit" class="btn">💾 Save Settings</button>
     </form>
+
+    <!-- Push Notifications Section -->
+    <div class="push-section">
+        <h3>🔔 Push Notifications</h3>
+        <p>Get reminders even when you're not on the website</p>
+        <button id="pushBtn" class="btn" onclick="enablePushNotifications()">Enable Push Notifications</button>
+        <p id="pushStatus" style="margin-top: 10px;"></p>
+    </div>
 </div>
 
 <style>
@@ -58,148 +52,153 @@
     margin-bottom: 5px;
 }
 
-.settings-container > p {
+.settings-container p {
     text-align: center;
     color: #666;
     margin-bottom: 30px;
 }
 
-.setting-group {
+.settings-form {
     background: white;
-    border-radius: 15px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.form-group {
     margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.setting-group h3 {
-    margin: 0 0 15px 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.setting-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    cursor: pointer;
-    flex-wrap: wrap;
-}
-
-.setting-item input {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-.setting-item span {
-    font-weight: bold;
-    min-width: 140px;
-}
-
-.setting-item small {
-    color: #666;
-    font-size: 0.8em;
-}
-
-.input-group {
-    margin: 15px 0;
-}
-
-.input-group label {
+.form-group label {
     display: block;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    cursor: pointer;
 }
 
-.input-group input {
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+.form-group input[type="tel"] {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 1em;
-}
-
-.input-group small {
-    display: block;
-    color: #666;
-    font-size: 0.8em;
     margin-top: 5px;
 }
 
-.form-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 20px;
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #888;
+    font-size: 0.8em;
 }
 
-.btn-primary {
-    background: #667eea;
+.push-section {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
-.btn-secondary {
-    background: #6c757d;
+.push-section h3 {
+    margin-bottom: 10px;
+}
+
+.push-section p {
+    margin-bottom: 20px;
+    color: #666;
 }
 
 .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    text-decoration: none;
     display: inline-block;
+    padding: 12px 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
     font-size: 1em;
 }
 
-body.dark-mode .setting-group {
+.btn:hover {
+    background: #5a67d8;
+}
+
+body.dark-mode .settings-form,
+body.dark-mode .push-section {
     background: #1a1a2e;
 }
 
-body.dark-mode .setting-group h3 {
-    border-bottom-color: #2a2a3e;
-}
-
-body.dark-mode .setting-item small {
+body.dark-mode .form-group small {
     color: #aaa;
 }
 
-body.dark-mode .input-group input {
+body.dark-mode .settings-container p {
+    color: #aaa;
+}
+
+body.dark-mode .push-section p {
+    color: #aaa;
+}
+
+body.dark-mode .form-group input[type="tel"] {
     background: #2a2a3e;
-    color: white;
     border-color: #3a3a4e;
-}
-
-body.dark-mode .settings-container > p {
-    color: #aaa;
+    color: #eee;
 }
 </style>
 
 <script>
+const applicationServerKey = '{{ vapid_public_key }}';
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
 function enablePushNotifications() {
-    if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-            document.getElementById('pushStatus').innerHTML = '✅ Notifications already enabled!';
-        } else if (Notification.permission !== 'denied') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    document.getElementById('pushStatus').innerHTML = '✅ Notifications enabled!';
-                } else {
-                    document.getElementById('pushStatus').innerHTML = '❌ Notifications blocked';
-                }
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(applicationServerKey)
+            }).then(subscription => {
+                fetch('/save_push_subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                }).then(response => {
+                    document.getElementById('pushStatus').innerHTML = '✅ Push notifications enabled successfully!';
+                    document.getElementById('pushStatus').style.color = 'green';
+                    document.getElementById('pushBtn').style.display = 'none';
+                });
+            }).catch(error => {
+                document.getElementById('pushStatus').innerHTML = '❌ Error: ' + error.message;
+                document.getElementById('pushStatus').style.color = 'red';
             });
-        } else {
-            document.getElementById('pushStatus').innerHTML = '❌ Notifications are blocked. Please check your browser settings.';
-        }
+        });
     } else {
-        document.getElementById('pushStatus').innerHTML = '❌ Your browser does not support notifications';
+        document.getElementById('pushStatus').innerHTML = '❌ Service workers not supported in this browser';
     }
 }
 
-// Check notification status on page load
+// Check if already enabled
 if ('Notification' in window && Notification.permission === 'granted') {
-    document.getElementById('pushStatus').innerHTML = '✅ Notifications are enabled';
+    document.getElementById('pushStatus').innerHTML = '✅ Push notifications are already enabled';
+    document.getElementById('pushStatus').style.color = 'green';
+    document.getElementById('pushBtn').style.display = 'none';
 }
 </script>
 {% endblock %}

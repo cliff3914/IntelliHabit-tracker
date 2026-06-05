@@ -8,11 +8,18 @@ from datetime import datetime, timedelta
 import threading
 import time
 import schedule
+from pywebpush import webpush
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///habits.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# VAPID Configuration for Push Notifications
+VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY')
+VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY')
+VAPID_EMAIL = os.environ.get('VAPID_EMAIL', 'mailto:your-email@gmail.com')
 
 # Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -73,6 +80,8 @@ class PushSubscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     endpoint = db.Column(db.String(500), nullable=False)
+    p256dh = db.Column(db.String(200))
+    auth = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
 @login_manager.user_loader
@@ -252,25 +261,61 @@ def test_email():
 
 @app.route('/send-reminders')
 def send_reminders():
+    from pywebpush import webpush
+    import json
+    
     current_time = datetime.now().strftime("%H:%M")
     habits = Habit.query.filter_by(reminder_time=current_time).all()
     
-    count = 0
+    email_count = 0
+    push_count = 0
+    
     for habit in habits:
         user = User.query.get(habit.user_id)
-        if user and user.email_notifications:
+        if not user:
+            continue
+            
+        # Send Email Reminder
+        if user.email_notifications:
             try:
                 msg = Message(
                     f'Reminder: {habit.name}',
                     recipients=[user.email],
-                    body=f"Hi {user.username},\n\nIt's time to complete your habit: {habit.name}\n\nKeep up the great work!"
+                    body=f"Hi {user.username},\n\nIt's time to complete your habit: {habit.name}\n\nCurrent streak: {habit.streak} days\n\nKeep up the great work!"
                 )
                 mail.send(msg)
-                count += 1
+                email_count += 1
+                print(f"Email sent to {user.email}")
             except Exception as e:
-                print(f"Error sending to {user.email}: {e}")
+                print(f"Email error for {user.email}: {e}")
+        
+        # Send Push Notification
+        subscriptions = PushSubscription.query.filter_by(user_id=user.id).all()
+        for sub in subscriptions:
+            try:
+                webpush(
+                    subscription_info={
+                        'endpoint': sub.endpoint,
+                        'keys': {
+                            'p256dh': sub.p256dh,
+                            'auth': sub.auth
+                        }
+                    },
+                    data=json.dumps({
+                        'title': f'Reminder: {habit.name}',
+                        'body': f'Time to complete your habit! Streak: {habit.streak} days'
+                    }),
+                    vapid_private_key=VAPID_PRIVATE_KEY,
+                    vapid_claims={
+                        'sub': VAPID_EMAIL
+                    }
+                )
+                push_count += 1
+                print(f"Push sent to {sub.endpoint[:50]}...")
+            except Exception as e:
+                print(f"Push error: {e}")
     
-    return f"Sent {count} reminder emails at {current_time}"
+    return f"Sent {email_count} emails and {push_count} push notifications"
 
 @app.route('/test-reminder')
 @login_required
@@ -422,9 +467,9 @@ def update_reminder_settings():
     db.session.commit()
     return jsonify({'success': True})
 
-@app.route('/save_subscription', methods=['POST'])
+@app.route('/save_push_subscription', methods=['POST'])
 @login_required
-def save_subscription():
+def save_push_subscription():
     data = request.get_json()
     
     existing = PushSubscription.query.filter_by(
@@ -435,12 +480,14 @@ def save_subscription():
     if not existing:
         subscription = PushSubscription(
             user_id=current_user.id,
-            endpoint=data.get('endpoint')
+            endpoint=data.get('endpoint'),
+            p256dh=data.get('keys', {}).get('p256dh'),
+            auth=data.get('keys', {}).get('auth')
         )
         db.session.add(subscription)
         db.session.commit()
     
-    return {'status': 'success'}
+    return jsonify({'status': 'success'})
 
 @app.route('/test_notification')
 @login_required
@@ -458,7 +505,7 @@ def settings():
         flash('Settings updated successfully!')
         return redirect(url_for('settings'))
     
-    return render_template('settings.html')
+    return render_template('settings.html', vapid_public_key=VAPID_PUBLIC_KEY)
 
 @app.route('/friends')
 @login_required
