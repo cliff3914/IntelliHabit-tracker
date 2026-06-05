@@ -1,16 +1,128 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Login</h1>
-<form method="post">
-    <label>Username:</label>
-    <input type="text" name="username" required>
-    
-    <label>Password:</label>
-    <input type="password" name="password" required>
-    
-    <button type="submit" class="btn">Login</button>
-</form>
-<p style="margin-top: 20px;">No account? <a href="/register">Register here</a></p>
-{% endblock %}
+<div class="login-container">
+    <h1>🔐 Login</h1>
+    <p>Welcome back! Please login to your account</p>
 
+    <form method="post" class="login-form">
+        <div class="form-group">
+            <label>👤 Username</label>
+            <input type="text" name="username" placeholder="Enter your username" required>
+        </div>
+
+        <div class="form-group">
+            <label>🔒 Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="btn">🚀 Login</button>
+        
+        <p class="register-link">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+    </form>
+</div>
+
+<style>
+.login-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.login-container h1 {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.login-container p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.login-form {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: #5a67d8;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.register-link a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+body.dark-mode .login-form {
+    background: #1a1a2e;
+}
+
+body.dark-mode .form-group label {
+    color: #eee;
+}
+
+body.dark-mode .form-group input {
+    background: #2a2a3e;
+    border-color: #3a3a4e;
+    color: #eee;
+}
+
+body.dark-mode .login-container p {
+    color: #aaa;
+}
+
+body.dark-mode .register-link {
+    color: #aaa;
+}
+</style>
+{% endblock %}
