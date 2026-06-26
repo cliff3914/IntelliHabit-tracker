@@ -16,6 +16,9 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-produ
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///habits.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+import gc
+gc.set_threshold(700, 10, 5)
+
 # VAPID Configuration for Push Notifications
 VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY')
 VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY')
