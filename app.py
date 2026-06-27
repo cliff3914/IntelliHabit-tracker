@@ -26,7 +26,6 @@ def get_db_connection():
         try:
             database_url = os.environ.get('DATABASE_URL')
             if database_url:
-                # Add sslmode=require if not already present
                 if '?' not in database_url:
                     database_url += '?sslmode=require'
                 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -48,7 +47,6 @@ def get_db_connection():
                 print(f"⏳ Waiting 3 seconds before retry...")
                 time.sleep(3)
 
-    # Final fallback
     print("⚠️ All retries failed. Falling back to SQLite.")
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
     return SQLAlchemy(app)
@@ -56,7 +54,7 @@ def get_db_connection():
 # Initialize database
 db = get_db_connection()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-      
+
 import gc
 gc.set_threshold(700, 10, 5)
 
