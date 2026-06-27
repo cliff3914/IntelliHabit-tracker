@@ -283,8 +283,7 @@ def send_reminders():
 
     # Central Africa Time (CAT) - UTC+2
     local_tz = pytz.timezone('Africa/Maputo')
-    current_time = datetime.now(local_tz).strftime("%H:%M")
-    
+    current_time = datetime.now(local_tz).strftime("%H:%M") 
     habits = Habit.query.filter_by(reminder_time=current_time).all()
     
     email_count = 0
@@ -567,7 +566,9 @@ def force_push():
 @app.route('/server-time')
 def server_time():
     from datetime import datetime
-    return f"Server time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    import pytz
+    local_tz = pytz.timezone('Africa/Maputo')
+    return f"Server time: {datetime.now(local_tz).strftime('%Y-%m-%d %H:%M:%S')}"
 
 # Create tables
 with app.app_context():
