@@ -15,20 +15,48 @@ import json
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
-# Database configuration - supports both PostgreSQL and SQLite
+# Database connection with retry and SSL fix
 import os
-database_url = os.environ.get('DATABASE_URL')
-if database_url:
-    # If using PostgreSQL, add sslmode=require if not already there
-    if '?' not in database_url:
-        database_url += '?sslmode=require'
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-else:
-    # Fallback to SQLite
+import time
+import sqlalchemy
+
+def get_db_connection():
+    retries = 5
+    while retries > 0:
+        try:
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                # Add sslmode=require if not already present
+                if '?' not in database_url:
+                    database_url += '?sslmode=require'
+                app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+                print(f"🔄 Connecting to PostgreSQL... (retries left: {retries})")
+            else:
+                app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+                print("📁 Using SQLite as fallback (no DATABASE_URL found)")
+
+            # Test the connection
+            test_engine = sqlalchemy.create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+            with test_engine.connect() as conn:
+                print("✅ Database connected successfully!")
+                return SQLAlchemy(app)
+
+        except Exception as e:
+            print(f"❌ Connection attempt {6-retries}/5 failed: {e}")
+            retries -= 1
+            if retries > 0:
+                print(f"⏳ Waiting 3 seconds before retry...")
+                time.sleep(3)
+
+    # Final fallback
+    print("⚠️ All retries failed. Falling back to SQLite.")
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+    return SQLAlchemy(app)
 
+# Initialize database
+db = get_db_connection()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+      
 import gc
 gc.set_threshold(700, 10, 5)
 
