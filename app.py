@@ -15,6 +15,9 @@ import json
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-produc')
+
 # Database connection with retry and SSL fix
 import os
 import time
@@ -34,7 +37,6 @@ def get_db_connection():
                 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
                 print("📁 Using SQLite as fallback (no DATABASE_URL found)")
 
-            # Test the connection
             test_engine = sqlalchemy.create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
             with test_engine.connect() as conn:
                 print("✅ Database connected successfully!")
@@ -51,7 +53,6 @@ def get_db_connection():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
     return SQLAlchemy(app)
 
-# Initialize database
 db = get_db_connection()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
