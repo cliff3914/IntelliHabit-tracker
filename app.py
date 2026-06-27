@@ -559,7 +559,7 @@ def force_push():
     except Exception as e:
         return f"Error: {str(e)}"
     
-    @app.route('/server-time')
+@app.route('/server-time')
 def server_time():
     from datetime import datetime
     return f"Server time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
