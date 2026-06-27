@@ -13,7 +13,19 @@ import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///habits.db')
+
+# Database configuration - supports both PostgreSQL and SQLite
+import os
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # If using PostgreSQL, add sslmode=require if not already there
+    if '?' not in database_url:
+        database_url += '?sslmode=require'
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback to SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 import gc
@@ -546,6 +558,11 @@ def force_push():
         return "Push notification sent successfully!"
     except Exception as e:
         return f"Error: {str(e)}"
+    
+    @app.route('/server-time')
+def server_time():
+    from datetime import datetime
+    return f"Server time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
 # Create tables
 with app.app_context():
