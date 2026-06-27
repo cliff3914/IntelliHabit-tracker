@@ -11,16 +11,12 @@ import time
 import schedule
 from pywebpush import webpush
 import json
+import gc
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-produc')
-
 # Database connection with retry and SSL fix
-import os
-import time
 import sqlalchemy
 
 def get_db_connection():
@@ -56,7 +52,6 @@ def get_db_connection():
 db = get_db_connection()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-import gc
 gc.set_threshold(700, 10, 5)
 
 # VAPID Configuration for Push Notifications
@@ -73,7 +68,6 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
 
 mail = Mail(app)
-db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
