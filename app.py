@@ -281,9 +281,10 @@ def send_reminders():
     import json
     import pytz
 
-    # Use your local timezone (replace 'Africa/Lagos' with yours)
-    local_tz = pytz.timezone('Africa/Lagos')
+    # Central Africa Time (CAT) - UTC+2
+    local_tz = pytz.timezone('Africa/Maputo')
     current_time = datetime.now(local_tz).strftime("%H:%M")
+    
     habits = Habit.query.filter_by(reminder_time=current_time).all()
     
     email_count = 0
@@ -330,7 +331,7 @@ def send_reminders():
                     }
                 )
                 push_count += 1
-                print(f"Push sent to {sub.endpoint[:50]}...")
+                print(f"Push sent")
             except Exception as e:
                 print(f"Push error: {e}")
     
