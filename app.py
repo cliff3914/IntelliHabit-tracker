@@ -570,6 +570,19 @@ def server_time():
     local_tz = pytz.timezone('Africa/Maputo')
     return f"Server time: {datetime.now(local_tz).strftime('%Y-%m-%d %H:%M:%S')}"
 
+@app.route('/debug-habits')
+@login_required
+def debug_habits():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    result = []
+    for h in habits:
+        result.append({
+            'name': h.name,
+            'reminder_time': h.reminder_time,
+            'email_notif': current_user.email_notifications
+        })
+    return jsonify(result)
+
 # Create tables
 with app.app_context():
     db.create_all()
