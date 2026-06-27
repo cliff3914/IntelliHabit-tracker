@@ -5,6 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+import pytz
 import threading
 import time
 import schedule
@@ -278,8 +279,11 @@ def test_email():
 def send_reminders():
     from pywebpush import webpush
     import json
-    
-    current_time = datetime.now().strftime("%H:%M")
+    import pytz
+
+    # Use your local timezone (replace 'Africa/Lagos' with yours)
+    local_tz = pytz.timezone('Africa/Lagos')
+    current_time = datetime.now(local_tz).strftime("%H:%M")
     habits = Habit.query.filter_by(reminder_time=current_time).all()
     
     email_count = 0
