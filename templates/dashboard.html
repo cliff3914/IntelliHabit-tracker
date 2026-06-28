@@ -151,46 +151,39 @@
 </div>
 
 <style>
-/* Dashboard Dark Theme */
-.dashboard-header h1 {
-    color: #e8e8e8;
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 20px;
 }
-
 .stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
+    gap: 10px;
     margin: 15px 0;
 }
-
 .stat-box {
-    background: #1a1a2e;
-    padding: 15px;
+    background: white;
+    padding: 10px;
     border-radius: 12px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.05);
 }
-
 .stat-number {
-    font-size: 1.8em;
+    font-size: 1.5em;
     font-weight: bold;
-    color: #6c63ff;
+    color: #667eea;
 }
-
 .stat-label {
     font-size: 0.7em;
-    color: #888;
+    color: #666;
 }
-
 .dashboard-tabs {
     display: flex;
-    gap: 8px;
+    gap: 5px;
     margin: 15px 0;
-    background: #1a1a2e;
+    background: white;
     border-radius: 30px;
     padding: 5px;
 }
-
 .tab-btn {
     flex: 1;
     padding: 8px;
@@ -198,90 +191,182 @@
     background: transparent;
     border-radius: 25px;
     cursor: pointer;
-    color: #555;
-    transition: all 0.3s;
 }
-
 .tab-btn.active {
-    background: #6c63ff;
+    background: #667eea;
     color: white;
 }
-
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+.habits-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
 .habit-card {
-    background: #1a1a2e;
-    border-radius: 12px;
-    padding: 15px;
+    background: white;
+    border-radius: 15px;
+    padding: 12px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.3s;
+    gap: 12px;
 }
-
-.habit-card:hover {
-    border-color: rgba(108, 99, 255, 0.2);
+.habit-icon {
+    font-size: 2em;
 }
-
+.habit-info {
+    flex: 1;
+}
 .habit-info h3 {
-    color: #e8e8e8;
     margin: 0 0 5px 0;
+    font-size: 1em;
 }
-
 .progress-bar {
     height: 6px;
-    background: rgba(255, 255, 255, 0.08);
+    background: #e0e0e0;
     border-radius: 3px;
     margin: 5px 0;
-    overflow: hidden;
 }
-
 .progress-fill {
     height: 100%;
-    background: #6c63ff;
+    background: #4CAF50;
     border-radius: 3px;
-    transition: width 0.5s;
 }
-
-.streak-info {
-    font-size: 0.9em;
-    color: #f59e0b;
-}
-
 .complete-btn {
-    background: #6c63ff;
+    background: #667eea;
     color: white;
-    padding: 6px 14px;
+    padding: 6px 12px;
     border-radius: 20px;
     text-decoration: none;
     font-size: 0.8em;
-    transition: all 0.3s;
 }
-
-.complete-btn:hover {
-    background: #5a52d5;
-}
-
 .completed-badge {
-    color: #34d399;
+    color: #4CAF50;
     font-weight: bold;
+    font-size: 0.8em;
 }
-
 .add-habit-btn {
     display: block;
     text-align: center;
-    background: #6c63ff;
+    background: #667eea;
     color: white;
-    padding: 14px;
+    padding: 12px;
     border-radius: 30px;
     text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s;
 }
-
-.add-habit-btn:hover {
-    background: #5a52d5;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.3);
+.calendar-widget {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+}
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.nav-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.legend-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.legend-dot.completed { background: #4CAF50; }
+.legend-dot.partial { background: #ff9800; }
+.legend-dot.missed { background: #ff4444; }
+.legend-dot.today { background: #667eea; }
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f5f5f5;
+}
+.calendar-day.completed { background: #4CAF50; color: white; }
+.calendar-day.partial { background: #ff9800; color: white; }
+.calendar-day.missed { background: #ff4444; color: white; }
+.calendar-day.today { border: 2px solid #667eea; }
+.widget-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.widget-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.8em;
+}
+.search-bar {
+    margin-bottom: 15px;
+}
+.search-bar input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+}
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+body.dark-mode .stat-box,
+body.dark-mode .habit-card,
+body.dark-mode .calendar-widget,
+body.dark-mode .widget-card,
+body.dark-mode .stat-card {
+    background: #1a1a2e;
+}
+body {
+    padding-bottom: 80px;
 }
 </style>
 
