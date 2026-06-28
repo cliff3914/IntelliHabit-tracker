@@ -615,20 +615,21 @@ def debug_habits():
 @app.route('/force-reminder')
 @login_required
 def force_reminder():
+    from flask_mail import Message
     try:
-        # Get the user's first habit (or any habit)
+        # Get the user's first habit
         habit = Habit.query.filter_by(user_id=current_user.id).first()
         
         if not habit:
             return "You don't have any habits yet. Create one first."
         
-        # Send email immediately
+        # Send email using the existing mail instance
         msg = Message(
             f'Reminder: {habit.name}',
             recipients=[current_user.email],
             body=f"Hi {current_user.username},\n\nThis is a reminder to complete your habit: {habit.name}\n\nCurrent streak: {habit.streak} days\n\nKeep up the great work!"
         )
-        mail.send(msg)
+        mail.send(msg)  # This uses the global `mail` object defined earlier
         
         return f"✅ Reminder sent to {current_user.email} for habit: {habit.name}"
     except Exception as e:
