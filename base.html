@@ -13,25 +13,10 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a1a;
+            background: #0d0d1a;
             min-height: 100vh;
             padding-bottom: 80px;
-            color: #e0e0e0;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(ellipse at 20% 50%, rgba(0, 212, 255, 0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 50%, rgba(255, 107, 157, 0.08) 0%, transparent 60%),
-                linear-gradient(180deg, #0a0a1a 0%, #12122a 100%);
-            z-index: -1;
-            pointer-events: none;
+            color: #e8e8e8;
         }
         
         .bottom-nav {
@@ -39,14 +24,13 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(18, 18, 42, 0.95);
-            backdrop-filter: blur(10px);
+            background: #1a1a2e;
             display: flex;
             justify-content: space-around;
             padding: 10px 5px;
-            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .nav-item {
@@ -62,13 +46,11 @@
         }
         
         .nav-item:hover {
-            color: #00d4ff;
-            transform: translateY(-2px);
+            color: #6c63ff;
         }
         
         .nav-item.active {
-            color: #00d4ff;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            color: #6c63ff;
         }
         
         .nav-icon {
@@ -87,60 +69,57 @@
         }
         
         .content {
-            background: rgba(18, 18, 42, 0.7);
-            backdrop-filter: blur(10px);
+            background: #16162e;
             padding: 30px;
             border-radius: 16px;
             min-height: 400px;
-            border: 1px solid rgba(0, 212, 255, 0.05);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .alert {
             padding: 12px 20px;
             margin: 10px 0;
-            background: rgba(0, 212, 255, 0.1);
-            color: #00d4ff;
+            background: #2a1a3e;
+            color: #c084fc;
             border-radius: 8px;
-            border: 1px solid rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(192, 132, 252, 0.2);
         }
         
         .btn {
             display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #00d4ff, #0090ff);
+            padding: 10px 24px;
+            background: #6c63ff;
             color: white;
             text-decoration: none;
             border-radius: 8px;
             border: none;
             cursor: pointer;
             transition: all 0.3s;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+            font-weight: 500;
         }
         
         .btn:hover {
+            background: #5a52d5;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
-            background: linear-gradient(135deg, #00e5ff, #0090ff);
+            box-shadow: 0 4px 20px rgba(108, 99, 255, 0.3);
         }
         
         input, select, textarea {
             width: 100%;
             padding: 12px;
             margin: 10px 0 20px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             font-size: 1em;
             background: rgba(255, 255, 255, 0.05);
-            color: #e0e0e0;
+            color: #e8e8e8;
             transition: all 0.3s;
         }
         
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+            border-color: #6c63ff;
+            box-shadow: 0 0 20px rgba(108, 99, 255, 0.1);
             background: rgba(255, 255, 255, 0.08);
         }
         
@@ -149,25 +128,21 @@
         }
         
         label {
-            font-weight: bold;
+            font-weight: 500;
             color: #aaa;
         }
         
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         
         ::-webkit-scrollbar-track {
-            background: #0a0a1a;
+            background: #0d0d1a;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #00d4ff;
+            background: #6c63ff;
             border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #0090ff;
         }
     </style>
 </head>

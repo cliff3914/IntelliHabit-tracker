@@ -152,28 +152,29 @@
 
 <style>
 /* Dashboard Dark Theme */
+.dashboard-header h1 {
+    color: #e8e8e8;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 15px 0;
+}
+
 .stat-box {
-    background: rgba(18, 18, 42, 0.8);
-    backdrop-filter: blur(10px);
+    background: #1a1a2e;
     padding: 15px;
     border-radius: 12px;
     text-align: center;
-    border: 1px solid rgba(0, 212, 255, 0.05);
-    transition: all 0.3s;
-}
-
-.stat-box:hover {
-    border-color: rgba(0, 212, 255, 0.2);
-    transform: translateY(-2px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .stat-number {
     font-size: 1.8em;
     font-weight: bold;
-    background: linear-gradient(135deg, #00d4ff, #ff6b9d);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #6c63ff;
 }
 
 .stat-label {
@@ -181,99 +182,13 @@
     color: #888;
 }
 
-.habit-card {
-    background: rgba(18, 18, 42, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.3s;
-}
-
-.habit-card:hover {
-    border-color: rgba(0, 212, 255, 0.15);
-    transform: translateX(5px);
-}
-
-.habit-icon {
-    font-size: 2em;
-}
-
-.habit-info h3 {
-    color: #e0e0e0;
-    margin: 0 0 5px 0;
-}
-
-.progress-bar {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-    margin: 5px 0;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #00d4ff, #ff6b9d);
-    border-radius: 3px;
-    transition: width 0.5s;
-}
-
-.streak-info {
-    font-size: 0.9em;
-    color: #ffd700;
-}
-
-.complete-btn {
-    background: linear-gradient(135deg, #00d4ff, #0090ff);
-    color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-size: 0.8em;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.complete-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
-}
-
-.completed-badge {
-    color: #00d4ff;
-    font-weight: bold;
-}
-
-.add-habit-btn {
-    display: block;
-    text-align: center;
-    background: linear-gradient(135deg, #00d4ff, #0090ff);
-    color: white;
-    padding: 14px;
-    border-radius: 30px;
-    text-decoration: none;
-    font-weight: 600;
-    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
-    transition: all 0.3s;
-}
-
-.add-habit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
-}
-
 .dashboard-tabs {
     display: flex;
-    gap: 5px;
+    gap: 8px;
     margin: 15px 0;
-    background: rgba(18, 18, 42, 0.8);
+    background: #1a1a2e;
     border-radius: 30px;
     padding: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .tab-btn {
@@ -288,13 +203,85 @@
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, #00d4ff, #0090ff);
+    background: #6c63ff;
     color: white;
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
 }
 
-.tab-btn:hover {
-    color: #00d4ff;
+.habit-card {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s;
+}
+
+.habit-card:hover {
+    border-color: rgba(108, 99, 255, 0.2);
+}
+
+.habit-info h3 {
+    color: #e8e8e8;
+    margin: 0 0 5px 0;
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    margin: 5px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #6c63ff;
+    border-radius: 3px;
+    transition: width 0.5s;
+}
+
+.streak-info {
+    font-size: 0.9em;
+    color: #f59e0b;
+}
+
+.complete-btn {
+    background: #6c63ff;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.8em;
+    transition: all 0.3s;
+}
+
+.complete-btn:hover {
+    background: #5a52d5;
+}
+
+.completed-badge {
+    color: #34d399;
+    font-weight: bold;
+}
+
+.add-habit-btn {
+    display: block;
+    text-align: center;
+    background: #6c63ff;
+    color: white;
+    padding: 14px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.add-habit-btn:hover {
+    background: #5a52d5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.3);
 }
 </style>
 
