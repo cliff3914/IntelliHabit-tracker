@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import pytz
@@ -61,13 +60,10 @@ VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY')
 VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY')
 VAPID_EMAIL = os.environ.get('VAPID_EMAIL', 'mailto:your-email@gmail.com')
 
-app.config['MAIL_SERVER'] = 'smtp-mail.outlook.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+# SendGrid Configuration
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+FROM_EMAIL = os.environ.get('FROM_EMAIL', 'bwanalicliff703@gmail.com')
 
-mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -124,6 +120,22 @@ class PushSubscription(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# Helper function to send emails
+def send_email(to_email, subject, html_content):
+    try:
+        message = Mail(
+            from_email=FROM_EMAIL,
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        return response.status_code == 202
+    except Exception as e:
+        print(f"Email error: {e}")
+        return False
 
 # Routes
 @app.route('/')
@@ -287,19 +299,15 @@ def complete_habit(habit_id):
 @login_required
 def test_email():
     try:
-        message = Mail(
-            from_email='bwanalicliff703@gmail.com',  # Your verified sender email
-            to_emails=current_user.email,
+        success = send_email(
+            to_email=current_user.email,
             subject='Test Email from IntelliHabit',
             html_content='<h3>✅ Test Email Sent!</h3><p>Your IntelliHabit Tracker email system is working.</p>'
         )
-        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-        response = sg.send(message)
-        
-        if response.status_code == 202:
+        if success:
             flash('✅ Test email sent! Check your inbox.')
         else:
-            flash(f'⚠️ Email sent with status: {response.status_code}')
+            flash('⚠️ Email sending failed.')
     except Exception as e:
         flash(f'❌ Error: {str(e)}')
     return redirect(url_for('dashboard'))
@@ -323,17 +331,17 @@ def send_reminders():
         if not user:
             continue
             
-        # Send Email Reminder
+        # Send Email Reminder using SendGrid
         if user.email_notifications:
             try:
-                msg = Message(
-                    f'Reminder: {habit.name}',
-                    recipients=[user.email],
-                    body=f"Hi {user.username},\n\nIt's time to complete your habit: {habit.name}\n\nCurrent streak: {habit.streak} days\n\nKeep up the great work!"
+                success = send_email(
+                    to_email=user.email,
+                    subject=f'Reminder: {habit.name}',
+                    html_content=f'<h3>⏰ Reminder: {habit.name}</h3><p>Hi {user.username},</p><p>This is a reminder to complete your habit: <strong>{habit.name}</strong></p><p>🔥 Current streak: {habit.streak} days</p><p>Keep up the great work!</p>'
                 )
-                mail.send(msg)
-                email_count += 1
-                print(f"Email sent to {user.email}")
+                if success:
+                    email_count += 1
+                    print(f"Email sent to {user.email}")
             except Exception as e:
                 print(f"Email error for {user.email}: {e}")
         
@@ -369,15 +377,17 @@ def send_reminders():
 @login_required
 def test_reminder():
     try:
-        msg = Message(
-            'Test Reminder',
-            recipients=[current_user.email],
-            body=f"Hi {current_user.username},\n\nThis is a test reminder. Your habit reminders will work like this!"
+        success = send_email(
+            to_email=current_user.email,
+            subject='Test Reminder',
+            html_content=f'<h3>Test Reminder</h3><p>Hi {current_user.username},</p><p>This is a test reminder. Your habit reminders will work like this!</p>'
         )
-        mail.send(msg)
-        flash('Test reminder sent! Check your email.')
+        if success:
+            flash('✅ Test reminder sent! Check your email.')
+        else:
+            flash('⚠️ Reminder sending failed.')
     except Exception as e:
-        flash(f'Error sending reminder: {str(e)}')
+        flash(f'❌ Error: {str(e)}')
     return redirect(url_for('dashboard'))
 
 @app.route('/motivation')
@@ -615,23 +625,22 @@ def debug_habits():
 @app.route('/force-reminder')
 @login_required
 def force_reminder():
-    from flask_mail import Message
     try:
-        # Get the user's first habit
         habit = Habit.query.filter_by(user_id=current_user.id).first()
         
         if not habit:
             return "You don't have any habits yet. Create one first."
         
-        # Send email using the existing mail instance
-        msg = Message(
-            f'Reminder: {habit.name}',
-            recipients=[current_user.email],
-            body=f"Hi {current_user.username},\n\nThis is a reminder to complete your habit: {habit.name}\n\nCurrent streak: {habit.streak} days\n\nKeep up the great work!"
+        success = send_email(
+            to_email=current_user.email,
+            subject=f'Reminder: {habit.name}',
+            html_content=f'<h3>⏰ Reminder: {habit.name}</h3><p>Hi {current_user.username},</p><p>This is a reminder to complete your habit: <strong>{habit.name}</strong></p><p>🔥 Current streak: {habit.streak} days</p><p>Keep up the great work!</p>'
         )
-        mail.send(msg)  # This uses the global `mail` object defined earlier
         
-        return f"✅ Reminder sent to {current_user.email} for habit: {habit.name}"
+        if success:
+            return f"✅ Reminder sent to {current_user.email} for habit: {habit.name}"
+        else:
+            return "⚠️ Failed to send email."
     except Exception as e:
         return f"❌ Error: {str(e)}"
 
