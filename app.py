@@ -12,6 +12,8 @@ import schedule
 from pywebpush import webpush
 import json
 import gc
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
@@ -285,13 +287,21 @@ def complete_habit(habit_id):
 @login_required
 def test_email():
     try:
-        msg = Message('Test Email',
-                      recipients=[current_user.email],
-                      body='This is a test email from IntelliHabit Tracker!')
-        mail.send(msg)
-        flash('Test email sent! Check your inbox.')
+        message = Mail(
+            from_email='bwanalicliff703@gmail.com',  # Your verified sender email
+            to_emails=current_user.email,
+            subject='Test Email from IntelliHabit',
+            html_content='<h3>✅ Test Email Sent!</h3><p>Your IntelliHabit Tracker email system is working.</p>'
+        )
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        
+        if response.status_code == 202:
+            flash('✅ Test email sent! Check your inbox.')
+        else:
+            flash(f'⚠️ Email sent with status: {response.status_code}')
     except Exception as e:
-        flash(f'Error sending email: {str(e)}')
+        flash(f'❌ Error: {str(e)}')
     return redirect(url_for('dashboard'))
 
 @app.route('/send-reminders')
