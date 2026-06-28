@@ -612,6 +612,28 @@ def debug_habits():
         })
     return jsonify(result)
 
+@app.route('/force-reminder')
+@login_required
+def force_reminder():
+    try:
+        # Get the user's first habit (or any habit)
+        habit = Habit.query.filter_by(user_id=current_user.id).first()
+        
+        if not habit:
+            return "You don't have any habits yet. Create one first."
+        
+        # Send email immediately
+        msg = Message(
+            f'Reminder: {habit.name}',
+            recipients=[current_user.email],
+            body=f"Hi {current_user.username},\n\nThis is a reminder to complete your habit: {habit.name}\n\nCurrent streak: {habit.streak} days\n\nKeep up the great work!"
+        )
+        mail.send(msg)
+        
+        return f"✅ Reminder sent to {current_user.email} for habit: {habit.name}"
+    except Exception as e:
+        return f"❌ Error: {str(e)}"
+
 # Create tables
 with app.app_context():
     db.create_all()
